@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -162,16 +161,5 @@ public class MapPanel extends JPanel {
         painter.setWaypoints(waypoints);
         mapViewer.setOverlayPainter(painter);
         mapViewer.repaint();
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Map Panel Test");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.add(new MapPanel());
-            frame.setSize(800, 600);
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-        });
     }
 }
