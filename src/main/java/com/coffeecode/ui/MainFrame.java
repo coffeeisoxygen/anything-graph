@@ -1,17 +1,8 @@
 package com.coffeecode.ui;
 
-import java.awt.BorderLayout;
-
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JSlider;
-import javax.swing.JSplitPane;
-import javax.swing.JToolBar;
-import javax.swing.SwingUtilities;
-
 import lombok.Getter;
+import javax.swing.*;
+import java.awt.*;
 
 @Getter
 public class MainFrame extends JFrame {
@@ -19,40 +10,65 @@ public class MainFrame extends JFrame {
     private final MapPanel mapPanel;
     private final GraphPanel graphPanel;
     private final JToolBar toolBar;
-    private final JSplitPane splitPane;
 
     public MainFrame() {
         super("Graph Algorithm Visualizer");
+
+        // Basic frame setup
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setPreferredSize(new Dimension(1200, 800));
 
-        // Initialize components
-        mapPanel = new MapPanel();
-        graphPanel = new GraphPanel();
-        toolBar = createToolBar();
-        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mapPanel, graphPanel);
+        try {
+            // Initialize panels
+            mapPanel = new MapPanel();
+            graphPanel = new GraphPanel();
+            toolBar = createToolBar();
 
-        // Layout setup
-        setLayout(new BorderLayout());
-        add(toolBar, BorderLayout.NORTH);
-        add(splitPane, BorderLayout.CENTER);
+            // Layout setup
+            setLayout(new BorderLayout());
 
-        // Window settings
-        setSize(1200, 800);
-        splitPane.setDividerLocation(0.5);
-        setLocationRelativeTo(null);
+            JSplitPane splitPane = new JSplitPane(
+                    JSplitPane.HORIZONTAL_SPLIT,
+                    mapPanel,
+                    graphPanel
+            );
+            splitPane.setResizeWeight(0.5);
+
+            add(toolBar, BorderLayout.NORTH);
+            add(splitPane, BorderLayout.CENTER);
+
+            pack();
+            setLocationRelativeTo(null);
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                    "Error initializing application: " + e.getMessage(),
+                    "Initialization Error",
+                    JOptionPane.ERROR_MESSAGE);
+            throw new RuntimeException(e);
+        }
     }
 
     private JToolBar createToolBar() {
         JToolBar bar = new JToolBar();
         bar.setFloatable(false);
 
-        JComboBox<String> algorithmSelector = new JComboBox<>(new String[]{
-            "BFS", "DFS", "Dijkstra", "A*"
-        });
+        JComboBox<String> algorithmSelector = new JComboBox<>(
+                new String[]{"BFS", "DFS", "Dijkstra", "A*"}
+        );
 
         JButton runButton = new JButton("Run");
         JButton stopButton = new JButton("Stop");
         JSlider speedSlider = new JSlider(0, 100, 50);
+
+        runButton.addActionListener(e -> {
+            String algorithm = (String) algorithmSelector.getSelectedItem();
+            // TODO: Implement algorithm execution
+        });
+
+        stopButton.addActionListener(e -> {
+            // TODO: Implement stop functionality
+        });
 
         bar.add(new JLabel("Algorithm: "));
         bar.add(algorithmSelector);
@@ -65,8 +81,17 @@ public class MainFrame extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new MainFrame().setVisible(true);
-        });
+        try {
+            System.setProperty("org.graphstream.ui", "swing");
+            UIManager.setLookAndFeel(
+                    UIManager.getSystemLookAndFeelClassName()
+            );
+
+            SwingUtilities.invokeLater(() -> {
+                new MainFrame().setVisible(true);
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -30,7 +30,7 @@ import org.graphstream.graph.ElementNotFoundException;
 import org.graphstream.graph.IdAlreadyInUseException;
 
 @Getter
-public class GraphPanel extends JPanel {
+public class GraphPanel extends JPanel implements Serializable {
 
     private static final long serialVersionUID = 1L;
     private transient Graph visualGraph; // GraphStream graph marked as transient
@@ -39,6 +39,7 @@ public class GraphPanel extends JPanel {
     private final JScrollPane scrollPane;
     private final transient Map<String, LocationNode> nodeMapping;
     private transient LocationGraph modelGraph;
+    private final GraphAnimationController animationController;
 
     public GraphPanel() throws GraphPanelInitializationException {
         setLayout(new BorderLayout());
@@ -52,6 +53,7 @@ public class GraphPanel extends JPanel {
             scrollPane = new JScrollPane(viewPanel);
             add(scrollPane, BorderLayout.CENTER);
             addResizeListener();
+            animationController = new GraphAnimationController(this);
         } catch (Exception e) {
             throw new GraphPanelInitializationException("Failed to initialize graph panel", e);
         }
@@ -158,5 +160,17 @@ public class GraphPanel extends JPanel {
             nodeMapping.clear();
             modelGraph = new LocationGraph();
         }
+    }
+
+    public void setAnimationSpeed(int speed) {
+        animationController.setSpeed(speed);
+    }
+
+    public void pauseAnimation() {
+        animationController.pause();
+    }
+
+    public void resumeAnimation() {
+        animationController.resume();
     }
 }
