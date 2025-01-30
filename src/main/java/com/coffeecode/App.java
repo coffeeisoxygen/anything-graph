@@ -1,15 +1,12 @@
 package com.coffeecode;
 
-import javax.swing.JFrame;
+import lombok.extern.slf4j.Slf4j;
 
-public class App extends JFrame {
+@Slf4j
+public class App {
 
-    private static final long serialVersionUID = 1L;
-
-    public App() {
-        setTitle("Hello World");
-        setSize(300, 200);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+    public static void main(String[] args) {
+        System.out.println("the journey just begin");
+        log.info("the journey just begin");
     }
 }
