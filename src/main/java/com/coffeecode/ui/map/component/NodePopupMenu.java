@@ -3,6 +3,7 @@ package com.coffeecode.ui.map.component;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -29,7 +30,8 @@ public class NodePopupMenu extends JPopupMenu {
     }
 
     private void setupLayout() {
-        JPanel panel = new JPanel(new BorderLayout(5, 5));
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         // Location panel
         JPanel locationPanel = new JPanel(new BorderLayout());
@@ -42,8 +44,8 @@ public class NodePopupMenu extends JPopupMenu {
         buttonPanel.add(setStartButton);
         buttonPanel.add(setEndButton);
 
-        panel.add(locationPanel, BorderLayout.NORTH);
-        panel.add(buttonPanel, BorderLayout.CENTER);
+        panel.add(locationPanel);
+        panel.add(buttonPanel);
         add(panel);
     }
 }
