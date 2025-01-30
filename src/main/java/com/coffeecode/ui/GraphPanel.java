@@ -1,38 +1,37 @@
 package com.coffeecode.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.implementations.SingleGraph;
+import org.graphstream.ui.swing.SwingGraphRenderer;
+import org.graphstream.ui.swing_viewer.ViewPanel;
+import org.graphstream.ui.view.Viewer;
+import lombok.Getter;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.SwingUtilities;
-
-import org.graphstream.graph.Edge;
-import org.graphstream.graph.Graph;
-import org.graphstream.graph.Node;
-import org.graphstream.graph.implementations.SingleGraph;
-import org.graphstream.ui.swing_viewer.ViewPanel;
-import org.graphstream.ui.swing_viewer.util.DefaultMouseManager;
-import org.graphstream.ui.view.Viewer;
-
+@Getter
 public class GraphPanel extends JPanel {
 
-    private Graph graph;
-    private Viewer viewer;
-    private ViewPanel viewPanel;
+    private final Graph graph;
+    private final Viewer viewer;
+    private final ViewPanel viewPanel;
+    private final JScrollPane scrollPane;
 
     public GraphPanel() {
         setLayout(new BorderLayout());
+
+        // Initialize components
         initializeGraph();
         initializeViewer();
 
-        JScrollPane scrollPane = new JScrollPane(viewPanel);
+        // Setup scroll pane
+        scrollPane = new JScrollPane(viewPanel);
         add(scrollPane, BorderLayout.CENTER);
 
-        setPreferredSize(new Dimension(600, 400));
-
+        // Add resize listener
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent evt) {
@@ -77,78 +76,35 @@ public class GraphPanel extends JPanel {
         viewer.setCloseFramePolicy(Viewer.CloseFramePolicy.HIDE_ONLY);
         viewer.enableAutoLayout();
         viewPanel = (ViewPanel) viewer.addDefaultView(false);
-
-        DefaultMouseManager mouseManager = new DefaultMouseManager();
-        viewPanel.addMouseListener(mouseManager);
-        viewPanel.addMouseMotionListener(mouseManager);
     }
 
     public void addNode(String id, double x, double y) {
-        SwingUtilities.invokeLater(() -> { // Ensure EDT access
-            Node node = graph.addNode(id);
-            node.setAttribute("ui.label", id);
-            node.setAttribute("xy", x, y);
-        });
+        graph.addNode(id);
+        org.graphstream.graph.Node node = graph.getNode(id);
+        node.setAttribute("xy", x, y);
+        node.setAttribute("ui.label", id);
     }
 
     public void addEdge(String id, String sourceId, String targetId, double weight) {
-        SwingUtilities.invokeLater(() -> { // Ensure EDT access
-            Edge edge = graph.addEdge(id, sourceId, targetId);
-            edge.setAttribute("ui.label", String.format("%.1f", weight));
-        });
+        graph.addEdge(id, sourceId, targetId);
+        org.graphstream.graph.Edge edge = graph.getEdge(id);
+        edge.setAttribute("ui.label", String.format("%.1f", weight));
     }
 
-    public void markNodeAsVisited(String id) {
-        SwingUtilities.invokeLater(() -> { // Ensure EDT access
-            Node node = graph.getNode(id);
-            if (node != null) {  // Check for null node
-                node.setAttribute("ui.class", "visited");
-            }
-        });
+    public void markNodeVisited(String id) {
+        graph.getNode(id).setAttribute("ui.class", "visited");
     }
 
-    public void markNodeAsCurrent(String id) {
-        SwingUtilities.invokeLater(() -> { // Ensure EDT access
-            Node node = graph.getNode(id);
-            if (node != null) { // Check for null node
-                node.setAttribute("ui.class", "current");
-            }
-        });
+    public void markEdgeVisited(String id) {
+        graph.getEdge(id).setAttribute("ui.class", "visited");
     }
 
-    public void markEdgeAsVisited(String id) {
-        SwingUtilities.invokeLater(() -> { // Ensure EDT access
-            Edge edge = graph.getEdge(id);
-            if (edge != null) { // Check for null edge
-                edge.setAttribute("ui.class", "visited");
-            }
-        });
+    public void reset() {
+        graph.nodes().forEach(node -> node.removeAttribute("ui.class"));
+        graph.edges().forEach(edge -> edge.removeAttribute("ui.class"));
     }
 
-    public void clearGraph() {
-        SwingUtilities.invokeLater(() -> graph.clear());
+    public void clear() {
+        graph.clear();
     }
-
-    public Graph getGraph() {
-        return graph;
-    }
-
-    // this just a sample later " lets finish all the code first" // ! [ ] MARK : Combeback Later!!
-    // public static void main(String[] args) {
-    //     SwingUtilities.invokeLater(() -> { // Initialize on EDT
-    //         JFrame frame = new JFrame("Graph Example");
-    //         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    //         GraphPanel graphPanel = new GraphPanel();
-    //         frame.add(graphPanel);
-    //         // Example usage (add nodes and edges):
-    //         graphPanel.addNode("A", 100, 150);
-    //         graphPanel.addNode("B", 300, 150);
-    //         graphPanel.addEdge("AB", "A", "B", 2.5);
-    //         graphPanel.addNode("C", 200, 300);
-    //         graphPanel.addEdge("AC", "A", "C", 1.8);
-    //         graphPanel.addEdge("BC", "B", "C", 3.2);
-    //         frame.pack();
-    //         frame.setVisible(true);
-    //     });
-    // }
 }
