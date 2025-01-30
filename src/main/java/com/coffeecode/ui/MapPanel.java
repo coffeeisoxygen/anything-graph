@@ -44,6 +44,9 @@ public class MapPanel extends JPanel {
     private final JPopupMenu popupMenu;
     private final JTextField locationNameField;
 
+    // Add event listener support
+    private final List<NodeChangeListener> nodeChangeListeners = new ArrayList<>();
+
     public MapPanel() {
         setLayout(new BorderLayout());
         nodes = new ArrayList<>();
@@ -128,9 +131,24 @@ public class MapPanel extends JPanel {
         popupMenu.add(panel);
     }
 
+    public void addNodeChangeListener(NodeChangeListener listener) {
+        nodeChangeListeners.add(listener);
+    }
+
+    public void removeNodeChangeListener(NodeChangeListener listener) {
+        nodeChangeListeners.remove(listener);
+    }
+
+    private void notifyNodeAdded(LocationNode node) {
+        for (NodeChangeListener listener : nodeChangeListeners) {
+            listener.onNodeAdded(node);
+        }
+    }
+
     public void addNode(LocationNode node) {
         nodes.add(node);
         updateWaypoints();
+        notifyNodeAdded(node);
     }
 
     private void updateWaypoints() {

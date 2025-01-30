@@ -9,8 +9,13 @@ import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.ui.swing_viewer.SwingViewer;
 import org.graphstream.ui.swing_viewer.ViewPanel;
 
-import lombok.Getter;
+import com.coffeecode.model.LocationGraph;
+import com.coffeecode.util.GraphConverter;
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Getter
 public class GraphPanel extends JPanel {
 
@@ -58,9 +63,19 @@ public class GraphPanel extends JPanel {
         """);
     }
 
-    // Test method
-    public void addTestNode() {
-        graph.addNode("A");
-        graph.getNode("A").setAttribute("ui.label", "A");
+    /**
+     * Updates the visualization with a new LocationGraph
+     */
+    public void updateGraph(LocationGraph locationGraph) {
+        try {
+            GraphConverter.updateGraphVisualization(locationGraph, graph);
+
+            // Center the view
+            viewer.getDefaultView().getCamera().resetView();
+
+        } catch (Exception e) {
+            log.error("Failed to update graph visualization", e);
+            throw new GraphPanelInitializationException("Graph update failed", e);
+        }
     }
 }
