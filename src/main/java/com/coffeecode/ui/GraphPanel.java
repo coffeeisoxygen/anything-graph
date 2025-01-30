@@ -1,16 +1,21 @@
 package com.coffeecode.ui;
 
-import javax.swing.*;
-import java.awt.*;
-import org.graphstream.graph.Graph;
-import org.graphstream.graph.Node;
-import org.graphstream.graph.Edge;
-import org.graphstream.graph.implementations.SingleGraph;
-import org.graphstream.ui.view.Viewer;
-import org.graphstream.ui.view.ViewPanel;
-import org.graphstream.ui.view.util.DefaultMouseManager;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
+
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+import org.graphstream.graph.implementations.SingleGraph;
+import org.graphstream.ui.swing_viewer.ViewPanel;
+import org.graphstream.ui.swing_viewer.util.DefaultMouseManager;
+import org.graphstream.ui.view.Viewer;
 
 public class GraphPanel extends JPanel {
 
@@ -68,9 +73,10 @@ public class GraphPanel extends JPanel {
     }
 
     private void initializeViewer() {
-        viewer = new Viewer(graph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+        viewer = graph.display(false);
+        viewer.setCloseFramePolicy(Viewer.CloseFramePolicy.HIDE_ONLY);
         viewer.enableAutoLayout();
-        viewPanel = viewer.addDefaultView(true);
+        viewPanel = (ViewPanel) viewer.addDefaultView(false);
 
         DefaultMouseManager mouseManager = new DefaultMouseManager();
         viewPanel.addMouseListener(mouseManager);
@@ -127,24 +133,22 @@ public class GraphPanel extends JPanel {
         return graph;
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> { // Initialize on EDT
-            JFrame frame = new JFrame("Graph Example");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-            GraphPanel graphPanel = new GraphPanel();
-            frame.add(graphPanel);
-
-            // Example usage (add nodes and edges):
-            graphPanel.addNode("A", 100, 150);
-            graphPanel.addNode("B", 300, 150);
-            graphPanel.addEdge("AB", "A", "B", 2.5);
-            graphPanel.addNode("C", 200, 300);
-            graphPanel.addEdge("AC", "A", "C", 1.8);
-            graphPanel.addEdge("BC", "B", "C", 3.2);
-
-            frame.pack();
-            frame.setVisible(true);
-        });
-    }
+    // this just a sample later " lets finish all the code first" // ! [ ] MARK : Combeback Later!!
+    // public static void main(String[] args) {
+    //     SwingUtilities.invokeLater(() -> { // Initialize on EDT
+    //         JFrame frame = new JFrame("Graph Example");
+    //         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    //         GraphPanel graphPanel = new GraphPanel();
+    //         frame.add(graphPanel);
+    //         // Example usage (add nodes and edges):
+    //         graphPanel.addNode("A", 100, 150);
+    //         graphPanel.addNode("B", 300, 150);
+    //         graphPanel.addEdge("AB", "A", "B", 2.5);
+    //         graphPanel.addNode("C", 200, 300);
+    //         graphPanel.addEdge("AC", "A", "C", 1.8);
+    //         graphPanel.addEdge("BC", "B", "C", 3.2);
+    //         frame.pack();
+    //         frame.setVisible(true);
+    //     });
+    // }
 }
