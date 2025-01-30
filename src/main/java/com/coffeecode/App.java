@@ -15,8 +15,10 @@ public class App {
         log.info("Starting Graph Algorithm Visualizer...");
 
         try {
-            // Set system properties
+            // Set GraphStream properties
             System.setProperty("org.graphstream.ui", "swing");
+            System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+            System.setProperty("gs.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
 
             // Set system look and feel
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -35,6 +37,7 @@ public class App {
 
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException e) {
             log.error("Application startup failed", e);
+            System.exit(1);
         }
     }
 }
