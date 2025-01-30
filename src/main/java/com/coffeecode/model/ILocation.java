@@ -13,8 +13,6 @@ public interface ILocation {
     @Override
     java.lang.String toString();
 
-    ILocation setName(String name);
-
     double distanceTo(Location other);
 
     String getDisplayName();

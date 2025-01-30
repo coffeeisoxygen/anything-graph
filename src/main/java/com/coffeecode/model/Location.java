@@ -13,10 +13,9 @@ public class Location implements ILocation {
     private static final AtomicLong ID_GENERATOR = new AtomicLong(1);
     private final Long id;
 
-    @Setter // Only name can be modified
     @NotBlank(message = "Location name cannot be blank")
     @Size(min = 2, max = 50)
-    private String name;
+    private final String name;
 
     @NotNull
     @DecimalMin("-180.0")
@@ -42,9 +41,20 @@ public class Location implements ILocation {
 
     @Override
     public double distanceTo(Location other) {
-        double dx = this.longitude - other.longitude;
-        double dy = this.latitude - other.latitude;
-        return Math.sqrt(dx * dx + dy * dy);
+        final double R = 6371; // Radius of Earth in km
+        double lat1 = Math.toRadians(this.latitude);
+        double lon1 = Math.toRadians(this.longitude);
+        double lat2 = Math.toRadians(other.latitude);
+        double lon2 = Math.toRadians(other.longitude);
+
+        double dlat = lat2 - lat1;
+        double dlon = lon2 - lon1;
+
+        double a = Math.sin(dlat / 2) * Math.sin(dlat / 2)
+                + Math.cos(lat1) * Math.cos(lat2)
+                * Math.sin(dlon / 2) * Math.sin(dlon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; // Result in kilometers
     }
 
     @Override
