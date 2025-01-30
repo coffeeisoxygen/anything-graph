@@ -1,4 +1,4 @@
-package com.coffeecode.ui;
+package com.coffeecode.ui.panelgraph;
 
 public class GraphStylesheet {
 

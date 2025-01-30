@@ -14,6 +14,8 @@ import javax.swing.JToolBar;
 
 import com.coffeecode.model.LocationGraph;
 import com.coffeecode.model.LocationNode;
+import com.coffeecode.ui.listener.NodeChangeListener;
+import com.coffeecode.ui.panelgraph.GraphPanel;
 import com.coffeecode.ui.panelmap.MapPanel;
 
 import lombok.Getter;

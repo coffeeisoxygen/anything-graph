@@ -7,11 +7,12 @@ import org.jxmapviewer.viewer.Waypoint;
 import lombok.Getter;
 
 @Getter
-public class DefaultWaypoint implements Waypoint {
+public class MapWaypoint implements Waypoint {
+
     private final GeoPosition position;
     private static final DefaultWaypointRenderer renderer = new DefaultWaypointRenderer();
 
-    public DefaultWaypoint(GeoPosition position) {
+    public MapWaypoint(GeoPosition position) {
         this.position = position;
     }
 }

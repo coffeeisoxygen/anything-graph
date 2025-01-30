@@ -1,4 +1,4 @@
-package com.coffeecode.ui;
+package com.coffeecode.ui.panelgraph;
 
 import java.awt.BorderLayout;
 
@@ -10,6 +10,7 @@ import org.graphstream.ui.swing_viewer.SwingViewer;
 import org.graphstream.ui.swing_viewer.ViewPanel;
 
 import com.coffeecode.model.LocationGraph;
+import com.coffeecode.ui.exception.GraphPanelInitializationException;
 import com.coffeecode.util.GraphConverter;
 
 import lombok.Getter;

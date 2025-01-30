@@ -1,4 +1,4 @@
-package com.coffeecode.ui;
+package com.coffeecode.ui.listener;
 
 import com.coffeecode.model.LocationNode;
 

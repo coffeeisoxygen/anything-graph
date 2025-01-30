@@ -31,7 +31,7 @@ import org.jxmapviewer.viewer.Waypoint;
 import org.jxmapviewer.viewer.WaypointPainter;
 
 import com.coffeecode.model.LocationNode;
-import com.coffeecode.ui.NodeChangeListener;
+import com.coffeecode.ui.listener.NodeChangeListener;
 
 import lombok.Getter;
 
@@ -154,7 +154,7 @@ public class MapPanel extends JPanel {
     private void updateWaypoints() {
         Set<Waypoint> waypoints = new HashSet<>();
         for (LocationNode node : nodes) {
-            waypoints.add(new DefaultWaypoint(
+            waypoints.add(new MapWaypoint(
                     new GeoPosition(node.getLatitude(), node.getLongitude())));
         }
 

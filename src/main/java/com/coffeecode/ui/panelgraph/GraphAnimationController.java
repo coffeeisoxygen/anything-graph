@@ -1,3 +1,4 @@
+package com.coffeecode.ui.panelgraph;
 // package com.coffeecode.ui;
 
 // import lombok.Getter;
