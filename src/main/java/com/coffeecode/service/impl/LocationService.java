@@ -1,5 +1,6 @@
 package com.coffeecode.service.impl;
 
+import com.coffeecode.exception.LocationException;
 import com.coffeecode.model.Location;
 import com.coffeecode.service.LocationOperations;
 import com.coffeecode.validation.LocationValidator;
@@ -24,8 +25,8 @@ public class LocationService implements LocationOperations {
             locations.put(location.getId(), location);
             log.info("Added location: {}", location);
         } catch (IllegalArgumentException e) {
-            log.error("Failed to add location: {}", e.getMessage());
-            throw e;
+            log.error("Validation failed for location: {}", location);
+            throw new LocationException("Failed to add location: " + e.getMessage());
         }
     }
 
@@ -69,11 +70,11 @@ public class LocationService implements LocationOperations {
 
     @Override
     public double calculateDistance(Long sourceId, Long targetId) {
-        Location source = locations.get(sourceId);
-        Location target = locations.get(targetId);
-        if (source == null || target == null) {
-            throw new IllegalArgumentException("Location not found");
-        }
+        Location source = findById(sourceId)
+                .orElseThrow(() -> new LocationException("Source location not found: " + sourceId));
+        Location target = findById(targetId)
+                .orElseThrow(() -> new LocationException("Target location not found: " + targetId));
+
         return source.distanceTo(target);
     }
 
