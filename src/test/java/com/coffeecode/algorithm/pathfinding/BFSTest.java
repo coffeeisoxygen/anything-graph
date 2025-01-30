@@ -9,32 +9,32 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.coffeecode.model.Edge;
-import com.coffeecode.model.Graph;
-import com.coffeecode.model.Node;
+import com.coffeecode.model.LocationEdge;
+import com.coffeecode.model.LocationGraph;
+import com.coffeecode.model.LocationNode;
 
 class BFSTest {
 
-    private Graph graph;
+    private LocationGraph graph;
     private BFS bfs;
-    private Node nodeA, nodeB, nodeC;
+    private LocationNode nodeA, nodeB, nodeC;
 
     @BeforeEach
     void setUp() {
-        graph = new Graph();
+        graph = new LocationGraph();
         bfs = new BFS();
 
-        nodeA = new Node("A");
-        nodeB = new Node("B");
-        nodeC = new Node("C");
+        nodeA = new LocationNode("A");
+        nodeB = new LocationNode("B");
+        nodeC = new LocationNode("C");
 
-        graph.addEdge(new Edge(nodeA, nodeB));
-        graph.addEdge(new Edge(nodeB, nodeC));
+        graph.addEdge(new LocationEdge(nodeA, nodeB));
+        graph.addEdge(new LocationEdge(nodeB, nodeC));
     }
 
     @Test
     void shouldFindPathBetweenNodes() {
-        List<Node> path = bfs.execute(graph, nodeA, nodeC, node -> {
+        List<LocationNode> path = bfs.execute(graph, nodeA, nodeC, node -> {
         });
 
         assertThat(path)
@@ -53,7 +53,7 @@ class BFSTest {
 
     @Test
     void shouldThrowExceptionForInvalidStartNode() {
-        Node invalidNode = new Node("Invalid");
+        LocationNode invalidNode = new LocationNode("Invalid");
 
         assertThatThrownBy(()
                 -> bfs.execute(graph, invalidNode, nodeC, node -> {
@@ -63,7 +63,7 @@ class BFSTest {
 
     @Test
     void shouldHandleCyclicGraph() {
-        graph.addEdge(new Edge(nodeC, nodeA)); // Create cycle A -> B -> C -> A
+        graph.addEdge(new LocationEdge(nodeC, nodeA)); // Create cycle A -> B -> C -> A
         List<String> visited = new ArrayList<>();
 
         bfs.execute(graph, nodeA, null, node -> visited.add(node.getId()));
@@ -74,11 +74,11 @@ class BFSTest {
 
     @Test
     void shouldHandleEmptyGraph() {
-        Graph emptyGraph = new Graph();
-        Node start = new Node("Start");
+        LocationGraph emptyGraph = new LocationGraph();
+        LocationNode start = new LocationNode("Start");
         emptyGraph.addNode(start);
 
-        List<Node> result = bfs.execute(emptyGraph, start, null, node -> {
+        List<LocationNode> result = bfs.execute(emptyGraph, start, null, node -> {
         });
 
         assertThat(result).containsOnly(start);
@@ -87,10 +87,10 @@ class BFSTest {
     @Test
     void shouldFollowBreadthFirstOrder() {
         // Create diamond shape: A -> B,C -> D
-        Node nodeD = new Node("D");
-        graph.addEdge(new Edge(nodeB, nodeD));
-        graph.addEdge(new Edge(nodeC, nodeD));
-        graph.addEdge(new Edge(nodeA, nodeC));
+        LocationNode nodeD = new LocationNode("D");
+        graph.addEdge(new LocationEdge(nodeB, nodeD));
+        graph.addEdge(new LocationEdge(nodeC, nodeD));
+        graph.addEdge(new LocationEdge(nodeA, nodeC));
 
         List<String> visited = new ArrayList<>();
         bfs.execute(graph, nodeA, null, node -> visited.add(node.getId()));
@@ -101,11 +101,11 @@ class BFSTest {
 
     @Test
     void shouldHandleDisconnectedGraph() {
-        Node nodeD = new Node("D");
-        Node nodeE = new Node("E");
-        graph.addEdge(new Edge(nodeD, nodeE));
+        LocationNode nodeD = new LocationNode("D");
+        LocationNode nodeE = new LocationNode("E");
+        graph.addEdge(new LocationEdge(nodeD, nodeE));
 
-        List<Node> result = bfs.execute(graph, nodeA, null, node -> {
+        List<LocationNode> result = bfs.execute(graph, nodeA, null, node -> {
         });
 
         assertThat(result).containsExactly(nodeA, nodeB, nodeC);

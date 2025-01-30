@@ -7,7 +7,7 @@ import lombok.NonNull;
 
 @Getter
 @EqualsAndHashCode(of = "id")
-public class Node {
+public class LocationNode {
 
     @NonNull
     @NotBlank
@@ -16,11 +16,11 @@ public class Node {
     private final double latitude;
     private final double longitude;
 
-    public Node(@NonNull String id) {
+    public LocationNode(@NonNull String id) {
         this(id, 0.0, 0.0);
     }
 
-    public Node(@NonNull String id, double latitude, double longitude) {
+    public LocationNode(@NonNull String id, double latitude, double longitude) {
         this.id = id;
         this.latitude = latitude;
         this.longitude = longitude;

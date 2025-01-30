@@ -11,37 +11,37 @@ import lombok.Getter;
 import lombok.NonNull;
 
 @Getter
-public class Graph {
+public class LocationGraph {
 
-    private final Map<Node, Set<Edge>> adjacencyList;
+    private final Map<LocationNode, Set<LocationEdge>> adjacencyList;
 
-    public Graph() {
+    public LocationGraph() {
         this.adjacencyList = new HashMap<>();
     }
 
-    public void addNode(@NotNull @NonNull Node node) {
+    public void addNode(@NotNull @NonNull LocationNode node) {
         adjacencyList.putIfAbsent(node, new HashSet<>());
     }
 
-    public void addEdge(@NotNull @NonNull Edge edge) {
+    public void addEdge(@NotNull @NonNull LocationEdge edge) {
         addNode(edge.getSource());
         addNode(edge.getDestination());
         adjacencyList.get(edge.getSource()).add(edge);
     }
 
-    public Set<Edge> getEdges(@NotNull @NonNull Node node) {
+    public Set<LocationEdge> getEdges(@NotNull @NonNull LocationNode node) {
         return adjacencyList.getOrDefault(node, new HashSet<>());
     }
 
-    public Set<Node> getNodes() {
+    public Set<LocationNode> getNodes() {
         return new HashSet<>(adjacencyList.keySet());
     }
 
-    public boolean containsNode(@NotNull @NonNull Node node) {
+    public boolean containsNode(@NotNull @NonNull LocationNode node) {
         return adjacencyList.containsKey(node);
     }
 
-    public void removeNode(@NotNull @NonNull Node node) {
+    public void removeNode(@NotNull @NonNull LocationNode node) {
         // Remove all edges containing this node
         adjacencyList.values().forEach(edges
                 -> edges.removeIf(edge
@@ -50,8 +50,8 @@ public class Graph {
         adjacencyList.remove(node);
     }
 
-    public void removeEdge(@NotNull @NonNull Edge edge) {
-        Set<Edge> edges = adjacencyList.get(edge.getSource());
+    public void removeEdge(@NotNull @NonNull LocationEdge edge) {
+        Set<LocationEdge> edges = adjacencyList.get(edge.getSource());
         if (edges != null) {
             edges.remove(edge);
         }
@@ -63,8 +63,8 @@ public class Graph {
      * @param node The source node
      * @return Set of adjacent nodes
      */
-    public Set<Node> getNeighbors(@NotNull @NonNull Node node) {
-        Set<Node> neighbors = new HashSet<>();
+    public Set<LocationNode> getNeighbors(@NotNull @NonNull LocationNode node) {
+        Set<LocationNode> neighbors = new HashSet<>();
         getEdges(node).forEach(edge -> neighbors.add(edge.getDestination()));
         return neighbors;
     }
@@ -76,11 +76,11 @@ public class Graph {
      * @param destination Destination node
      * @return Optional containing the edge weight if exists
      */
-    public Optional<Double> getEdgeWeight(@NotNull @NonNull Node source,
-            @NotNull @NonNull Node destination) {
+    public Optional<Double> getEdgeWeight(@NotNull @NonNull LocationNode source,
+            @NotNull @NonNull LocationNode destination) {
         return getEdges(source).stream()
                 .filter(e -> e.getDestination().equals(destination))
-                .map(Edge::getWeight)
+                .map(LocationEdge::getWeight)
                 .findFirst();
     }
 
@@ -91,8 +91,8 @@ public class Graph {
      * @param destination Destination node
      * @return true if edge exists
      */
-    public boolean hasEdge(@NotNull @NonNull Node source,
-            @NotNull @NonNull Node destination) {
+    public boolean hasEdge(@NotNull @NonNull LocationNode source,
+            @NotNull @NonNull LocationNode destination) {
         return getEdges(source).stream()
                 .anyMatch(e -> e.getDestination().equals(destination));
     }

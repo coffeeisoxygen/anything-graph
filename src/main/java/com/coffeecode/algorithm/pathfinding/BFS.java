@@ -12,8 +12,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import com.coffeecode.algorithm.GraphAlgorithm;
-import com.coffeecode.model.Graph;
-import com.coffeecode.model.Node;
+import com.coffeecode.model.LocationGraph;
+import com.coffeecode.model.LocationNode;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,27 +21,27 @@ import lombok.extern.slf4j.Slf4j;
 public class BFS implements GraphAlgorithm {
 
     @Override
-    public List<Node> execute(Graph graph, Node start, Node end, Consumer<Node> onVisit) {
+    public List<LocationNode> execute(LocationGraph graph, LocationNode start, LocationNode end, Consumer<LocationNode> onVisit) {
         if (!graph.containsNode(start)) {
             throw new IllegalArgumentException("Start node not in graph");
         }
 
-        Queue<Node> queue = new LinkedList<>();
-        Set<Node> visited = new HashSet<>();
-        Map<Node, Node> parentMap = new HashMap<>();
+        Queue<LocationNode> queue = new LinkedList<>();
+        Set<LocationNode> visited = new HashSet<>();
+        Map<LocationNode, LocationNode> parentMap = new HashMap<>();
 
         queue.offer(start);
         visited.add(start);
 
         while (!queue.isEmpty()) {
-            Node current = queue.poll();
+            LocationNode current = queue.poll();
             onVisit.accept(current); // Trigger visualization
 
             if (end != null && current.equals(end)) {
                 return reconstructPath(parentMap, start, end);
             }
 
-            for (Node neighbor : graph.getNeighbors(current)) {
+            for (LocationNode neighbor : graph.getNeighbors(current)) {
                 if (!visited.contains(neighbor)) {
                     visited.add(neighbor);
                     parentMap.put(neighbor, current);
@@ -53,9 +53,9 @@ public class BFS implements GraphAlgorithm {
         return end == null ? new ArrayList<>(visited) : Collections.emptyList();
     }
 
-    private List<Node> reconstructPath(Map<Node, Node> parentMap, Node start, Node end) {
-        List<Node> path = new ArrayList<>();
-        Node current = end;
+    private List<LocationNode> reconstructPath(Map<LocationNode, LocationNode> parentMap, LocationNode start, LocationNode end) {
+        List<LocationNode> path = new ArrayList<>();
+        LocationNode current = end;
 
         while (current != null) {
             path.add(0, current);

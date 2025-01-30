@@ -8,9 +8,9 @@ public class EdgeTest {
 
     @Test
     void shouldCreateEdgeWithWeight() {
-        Node source = new Node("A");
-        Node destination = new Node("B");
-        Edge edge = new Edge(source, destination, 10.0);
+        LocationNode source = new LocationNode("A");
+        LocationNode destination = new LocationNode("B");
+        LocationEdge edge = new LocationEdge(source, destination, 10.0);
 
         assertThat(edge.getSource()).isEqualTo(source);
         assertThat(edge.getDestination()).isEqualTo(destination);
@@ -19,18 +19,18 @@ public class EdgeTest {
 
     @Test
     void shouldNotAllowNegativeWeight() {
-        Node source = new Node("A");
-        Node destination = new Node("B");
+        LocationNode source = new LocationNode("A");
+        LocationNode destination = new LocationNode("B");
 
-        assertThatThrownBy(() -> new Edge(source, destination, -1.0))
+        assertThatThrownBy(() -> new LocationEdge(source, destination, -1.0))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void shouldCreateEdgeWithDefaultWeight() {
-        Node source = new Node("A");
-        Node destination = new Node("B");
-        Edge edge = new Edge(source, destination);
+        LocationNode source = new LocationNode("A");
+        LocationNode destination = new LocationNode("B");
+        LocationEdge edge = new LocationEdge(source, destination);
 
         assertThat(edge.getWeight()).isEqualTo(1.0);
     }

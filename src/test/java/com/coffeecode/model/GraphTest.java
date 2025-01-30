@@ -6,17 +6,17 @@ import org.junit.jupiter.api.Test;
 
 class GraphTest {
 
-    private Graph graph;
-    private Node nodeA;
-    private Node nodeB;
-    private Edge edge;
+    private LocationGraph graph;
+    private LocationNode nodeA;
+    private LocationNode nodeB;
+    private LocationEdge edge;
 
     @BeforeEach
     void setUp() {
-        graph = new Graph();
-        nodeA = new Node("A", 0.0, 0.0);
-        nodeB = new Node("B", 1.0, 1.0);
-        edge = new Edge(nodeA, nodeB, 10.0);
+        graph = new LocationGraph();
+        nodeA = new LocationNode("A", 0.0, 0.0);
+        nodeB = new LocationNode("B", 1.0, 1.0);
+        edge = new LocationEdge(nodeA, nodeB, 10.0);
     }
 
     @Test

@@ -10,8 +10,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import com.coffeecode.algorithm.GraphAlgorithm;
-import com.coffeecode.model.Graph;
-import com.coffeecode.model.Node;
+import com.coffeecode.model.LocationGraph;
+import com.coffeecode.model.LocationNode;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,13 +19,13 @@ import lombok.extern.slf4j.Slf4j;
 public class DFS implements GraphAlgorithm {
 
     @Override
-    public List<Node> execute(Graph graph, Node start, Node end, Consumer<Node> onVisit) {
+    public List<LocationNode> execute(LocationGraph graph, LocationNode start, LocationNode end, Consumer<LocationNode> onVisit) {
         if (!graph.containsNode(start)) {
             throw new IllegalArgumentException("Start node not in graph");
         }
 
-        Set<Node> visited = new HashSet<>();
-        Map<Node, Node> parentMap = new HashMap<>();
+        Set<LocationNode> visited = new HashSet<>();
+        Map<LocationNode, LocationNode> parentMap = new HashMap<>();
 
         boolean found = dfs(graph, start, end, visited, parentMap, onVisit);
 
@@ -36,9 +36,9 @@ public class DFS implements GraphAlgorithm {
         return found ? reconstructPath(parentMap, start, end) : Collections.emptyList();
     }
 
-    private boolean dfs(Graph graph, Node current, Node end,
-            Set<Node> visited, Map<Node, Node> parentMap,
-            Consumer<Node> onVisit) {
+    private boolean dfs(LocationGraph graph, LocationNode current, LocationNode end,
+            Set<LocationNode> visited, Map<LocationNode, LocationNode> parentMap,
+            Consumer<LocationNode> onVisit) {
         visited.add(current);
         onVisit.accept(current);
 
@@ -46,7 +46,7 @@ public class DFS implements GraphAlgorithm {
             return true;
         }
 
-        for (Node neighbor : graph.getNeighbors(current)) {
+        for (LocationNode neighbor : graph.getNeighbors(current)) {
             if (!visited.contains(neighbor)) {
                 parentMap.put(neighbor, current);
                 if (end != null && dfs(graph, neighbor, end, visited, parentMap, onVisit)) {
@@ -60,9 +60,9 @@ public class DFS implements GraphAlgorithm {
         return false;
     }
 
-    private List<Node> reconstructPath(Map<Node, Node> parentMap, Node start, Node end) {
-        List<Node> path = new ArrayList<>();
-        Node current = end;
+    private List<LocationNode> reconstructPath(Map<LocationNode, LocationNode> parentMap, LocationNode start, LocationNode end) {
+        List<LocationNode> path = new ArrayList<>();
+        LocationNode current = end;
 
         while (current != null) {
             path.add(0, current);

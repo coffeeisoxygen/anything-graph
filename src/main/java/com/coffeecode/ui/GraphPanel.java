@@ -1,37 +1,85 @@
 package com.coffeecode.ui;
 
-import org.graphstream.graph.Graph;
-import org.graphstream.graph.implementations.SingleGraph;
-import org.graphstream.ui.swing.SwingGraphRenderer;
-import org.graphstream.ui.swing_viewer.ViewPanel;
-import org.graphstream.ui.view.Viewer;
 import lombok.Getter;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.io.IOException;
+import java.io.Serializable;
+
+// Model imports
+import com.coffeecode.model.LocationNode;
+import com.coffeecode.model.LocationEdge;
+import com.coffeecode.model.LocationGraph;
+
+// GraphStream imports
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.implementations.SingleGraph;
+import org.graphstream.ui.view.Viewer;
+import org.graphstream.ui.swing_viewer.ViewPanel;
+
+// Java utilities
+import java.util.HashMap;
+import java.util.Map;
+
+import org.graphstream.graph.EdgeRejectedException;
+import org.graphstream.graph.ElementNotFoundException;
+import org.graphstream.graph.IdAlreadyInUseException;
 
 @Getter
 public class GraphPanel extends JPanel {
 
-    private final Graph graph;
-    private final Viewer viewer;
-    private final ViewPanel viewPanel;
+    private static final long serialVersionUID = 1L;
+    private transient Graph visualGraph; // GraphStream graph marked as transient
+    private transient Viewer viewer;
+    private transient ViewPanel viewPanel;
     private final JScrollPane scrollPane;
+    private final transient Map<String, LocationNode> nodeMapping;
+    private transient LocationGraph modelGraph;
 
-    public GraphPanel() {
+    public GraphPanel() throws GraphPanelInitializationException {
         setLayout(new BorderLayout());
 
-        // Initialize components
-        initializeGraph();
-        initializeViewer();
+        nodeMapping = new HashMap<>();
+        modelGraph = new LocationGraph();
 
-        // Setup scroll pane
-        scrollPane = new JScrollPane(viewPanel);
-        add(scrollPane, BorderLayout.CENTER);
+        try {
+            initializeGraph();
+            initializeViewer();
+            scrollPane = new JScrollPane(viewPanel);
+            add(scrollPane, BorderLayout.CENTER);
+            addResizeListener();
+        } catch (Exception e) {
+            throw new GraphPanelInitializationException("Failed to initialize graph panel", e);
+        }
+    }
 
-        // Add resize listener
+    private void initializeGraph() {
+        System.setProperty("org.graphstream.ui", "swing");
+        System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+        visualGraph = new SingleGraph("VisualGraph");
+        visualGraph.setAttribute("ui.quality");
+        visualGraph.setAttribute("ui.antialias");
+        visualGraph.setAttribute("ui.stylesheet", GraphStylesheet.getDefaultStylesheet());
+    }
+
+    // Called after deserialization
+    private void readObject(java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        initializeGraph(); // Reinitialize the graph
+    }
+
+    private void initializeViewer() {
+        viewer = visualGraph.display(false);
+        viewer.enableAutoLayout();
+        viewPanel = (ViewPanel) viewer.addDefaultView(false);
+    }
+
+    private void addResizeListener() {
         addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent evt) {
@@ -41,70 +89,74 @@ public class GraphPanel extends JPanel {
         });
     }
 
-    private void initializeGraph() {
-        System.setProperty("org.graphstream.ui", "swing");
-        graph = new SingleGraph("Graph");
-        graph.setAttribute("ui.stylesheet", """
-                node {
-                    size: 30px;
-                    fill-color: #666666;
-                    text-size: 20px;
-                    text-color: white;
-                    text-style: bold;
-                    text-alignment: center;
-                }
-                node.visited {
-                    fill-color: #00ff00;
-                }
-                node.current {
-                    fill-color: #ff0000;
-                }
-                edge {
-                    size: 2px;
-                    fill-color: #999999;
-                    text-size: 20px;
-                }
-                edge.visited {
-                    fill-color: #00ff00;
-                    size: 3px;
-                }
-                """);
+    public void addNode(LocationNode node) {
+        try {
+            String id = node.getId();
+            if (nodeMapping.containsKey(id)) {
+                return; // Node already exists
+            }
+
+            nodeMapping.put(id, node);
+            modelGraph.addNode(node);
+
+            synchronized (visualGraph) {
+                visualGraph.addNode(id);
+                org.graphstream.graph.Node visualNode = visualGraph.getNode(id);
+                visualNode.setAttribute("xy", node.getLatitude(), node.getLongitude());
+                visualNode.setAttribute("ui.label", id);
+            }
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            throw new GraphPanelInitializationException("Failed to add node: " + node.getId(), e);
+        }
     }
 
-    private void initializeViewer() {
-        viewer = graph.display(false);
-        viewer.setCloseFramePolicy(Viewer.CloseFramePolicy.HIDE_ONLY);
-        viewer.enableAutoLayout();
-        viewPanel = (ViewPanel) viewer.addDefaultView(false);
+    public void addEdge(LocationEdge edge) {
+        try {
+            String sourceId = edge.getSource().getId();
+            String targetId = edge.getDestination().getId();
+            String id = sourceId + "-" + targetId;
+
+            if (visualGraph.getEdge(id) != null) {
+                return; // Edge already exists
+            }
+
+            modelGraph.addEdge(edge);
+
+            synchronized (visualGraph) {
+                visualGraph.addEdge(id, sourceId, targetId);
+                org.graphstream.graph.Edge visualEdge = visualGraph.getEdge(id);
+                visualEdge.setAttribute("ui.label", String.format("%.1f", edge.getWeight()));
+            }
+        } catch (EdgeRejectedException | ElementNotFoundException | IdAlreadyInUseException e) {
+            throw new GraphPanelInitializationException("Failed to add edge", e);
+        }
     }
 
-    public void addNode(String id, double x, double y) {
-        graph.addNode(id);
-        org.graphstream.graph.Node node = graph.getNode(id);
-        node.setAttribute("xy", x, y);
-        node.setAttribute("ui.label", id);
+    public void setNodeState(String nodeId, String state) {
+        org.graphstream.graph.Node node = visualGraph.getNode(nodeId);
+        if (node != null) {
+            node.setAttribute("ui.class", state);
+        }
     }
 
-    public void addEdge(String id, String sourceId, String targetId, double weight) {
-        graph.addEdge(id, sourceId, targetId);
-        org.graphstream.graph.Edge edge = graph.getEdge(id);
-        edge.setAttribute("ui.label", String.format("%.1f", weight));
+    public void setEdgeState(String sourceId, String targetId, String state) {
+        String edgeId = sourceId + "-" + targetId;
+        org.graphstream.graph.Edge edge = visualGraph.getEdge(edgeId);
+        if (edge != null) {
+            edge.setAttribute("ui.class", state);
+        }
     }
 
-    public void markNodeVisited(String id) {
-        graph.getNode(id).setAttribute("ui.class", "visited");
-    }
-
-    public void markEdgeVisited(String id) {
-        graph.getEdge(id).setAttribute("ui.class", "visited");
-    }
-
-    public void reset() {
-        graph.nodes().forEach(node -> node.removeAttribute("ui.class"));
-        graph.edges().forEach(edge -> edge.removeAttribute("ui.class"));
+    public void resetStates() {
+        visualGraph.nodes().forEach(node -> node.removeAttribute("ui.class"));
+        visualGraph.edges().forEach(edge -> edge.removeAttribute("ui.class"));
     }
 
     public void clear() {
-        graph.clear();
+        synchronized (visualGraph) {
+            visualGraph.clear();
+            nodeMapping.clear();
+            modelGraph = new LocationGraph();
+        }
     }
 }

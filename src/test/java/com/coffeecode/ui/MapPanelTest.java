@@ -3,7 +3,7 @@ package com.coffeecode.ui;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
-import com.coffeecode.model.Node;
+import com.coffeecode.model.LocationNode;
 
 class MapPanelTest {
 
@@ -19,7 +19,7 @@ class MapPanelTest {
     @Test
     void shouldAddNode() {
         MapPanel mapPanel = new MapPanel();
-        Node node = new Node("Test", 0.0, 0.0);
+        LocationNode node = new LocationNode("Test", 0.0, 0.0);
 
         mapPanel.addNode(node);
 

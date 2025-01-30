@@ -3,8 +3,8 @@ package com.coffeecode.algorithm;
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.coffeecode.model.Graph;
-import com.coffeecode.model.Node;
+import com.coffeecode.model.LocationGraph;
+import com.coffeecode.model.LocationNode;
 
 public interface GraphAlgorithm {
 
@@ -17,7 +17,7 @@ public interface GraphAlgorithm {
      * @param onVisit Callback for visualization updates
      * @return Path found by the algorithm
      */
-    List<Node> execute(Graph graph, Node start, Node end, Consumer<Node> onVisit);
+    List<LocationNode> execute(LocationGraph graph, LocationNode start, LocationNode end, Consumer<LocationNode> onVisit);
 
     /**
      * Gets the algorithm's name for display

@@ -31,7 +31,7 @@ import org.jxmapviewer.viewer.TileFactoryInfo;
 import org.jxmapviewer.viewer.Waypoint;
 import org.jxmapviewer.viewer.WaypointPainter;
 
-import com.coffeecode.model.Node;
+import com.coffeecode.model.LocationNode;
 
 import lombok.Getter;
 
@@ -39,7 +39,7 @@ import lombok.Getter;
 public class MapPanel extends JPanel {
 
     private final JXMapViewer mapViewer;
-    private final List<Node> nodes;
+    private final List<LocationNode> nodes;
     private final Set<WaypointPainter<Waypoint>> painters;
     private final JPopupMenu popupMenu;
     private final JTextField locationNameField;
@@ -120,7 +120,7 @@ public class MapPanel extends JPanel {
         addButton.addActionListener(e -> {
             Point p = popupMenu.getLocation();
             GeoPosition geo = mapViewer.convertPointToGeoPosition(p);
-            addNode(new Node(locationNameField.getText(), geo.getLatitude(), geo.getLongitude()));
+            addNode(new LocationNode(locationNameField.getText(), geo.getLatitude(), geo.getLongitude()));
             popupMenu.setVisible(false);
         });
 
@@ -128,14 +128,14 @@ public class MapPanel extends JPanel {
         popupMenu.add(panel);
     }
 
-    public void addNode(Node node) {
+    public void addNode(LocationNode node) {
         nodes.add(node);
         updateWaypoints();
     }
 
     private void updateWaypoints() {
         Set<Waypoint> waypoints = new HashSet<>();
-        for (Node node : nodes) {
+        for (LocationNode node : nodes) {
             waypoints.add(new DefaultWaypoint(
                     new GeoPosition(node.getLatitude(), node.getLongitude())));
         }
