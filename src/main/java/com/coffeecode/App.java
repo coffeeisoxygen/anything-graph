@@ -1,42 +1,59 @@
 package com.coffeecode;
 
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
 import com.coffeecode.ui.MainFrame;
 
 import lombok.extern.slf4j.Slf4j;
 
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-
 @Slf4j
 public class App {
 
+    private static void setupGraphStream() {
+        System.setProperty("org.graphstream.ui", "swing");
+        System.setProperty("org.graphstream.ui.renderer",
+                "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+    }
+
+    private static void setupLookAndFeel() throws Exception {
+        UIManager.setLookAndFeel(
+                UIManager.getSystemLookAndFeelClassName());
+    }
+
     public static void main(String[] args) {
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            log.error("Uncaught exception in thread {}", thread.getName(), throwable);
+            System.exit(1);
+        });
+
         log.info("Starting Graph Algorithm Visualizer...");
 
         try {
-            // Set GraphStream properties
-            System.setProperty("org.graphstream.ui", "swing");
-            System.setProperty("org.graphstream.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
-            System.setProperty("gs.ui.renderer", "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+            setupGraphStream();
+            setupLookAndFeel();
 
-            // Set system look and feel
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            log.info("UI Look and Feel initialized");
-
-            // Launch UI
             SwingUtilities.invokeLater(() -> {
                 try {
                     MainFrame mainFrame = new MainFrame();
                     mainFrame.setVisible(true);
-                    log.info("Main window displayed");
+
+                    // Add shutdown hook
+                    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                        log.info("Shutting down application...");
+                        mainFrame.dispose();
+                    }));
+
+                    log.info("Application started successfully");
+
                 } catch (Exception e) {
-                    log.error("Failed to initialize main window", e);
+                    log.error("Failed to initialize application", e);
+                    System.exit(1);
                 }
             });
 
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException e) {
-            log.error("Application startup failed", e);
+        } catch (Exception e) {
+            log.error("Failed to start application", e);
             System.exit(1);
         }
     }
