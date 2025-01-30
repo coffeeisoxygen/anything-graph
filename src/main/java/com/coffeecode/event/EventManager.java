@@ -1,10 +1,13 @@
-package com.coffeecode.ui.event;
+package com.coffeecode.event;
 
-import lombok.extern.slf4j.Slf4j;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import com.coffeecode.ui.listener.NodeChangeListener;
+import com.coffeecode.listener.NodeChangeListener;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class EventManager {

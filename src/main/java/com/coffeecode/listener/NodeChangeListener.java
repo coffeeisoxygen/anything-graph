@@ -1,7 +1,7 @@
-package com.coffeecode.ui.listener;
+package com.coffeecode.listener;
 
+import com.coffeecode.event.NodeEvent;
 import com.coffeecode.model.LocationNode;
-import com.coffeecode.ui.event.NodeEvent;
 
 public interface NodeChangeListener {
 

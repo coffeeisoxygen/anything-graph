@@ -1,4 +1,4 @@
-package com.coffeecode.ui.event;
+package com.coffeecode.event;
 
 public enum NodeEventType {
     ADDED,

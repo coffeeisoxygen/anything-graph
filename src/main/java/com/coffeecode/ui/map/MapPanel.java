@@ -13,8 +13,8 @@ import org.jxmapviewer.input.PanMouseInputListener;
 import org.jxmapviewer.input.ZoomMouseWheelListenerCenter;
 import org.jxmapviewer.viewer.GeoPosition;
 
+import com.coffeecode.listener.NodeChangeListener;
 import com.coffeecode.ui.exception.MapInitializationException;
-import com.coffeecode.ui.listener.NodeChangeListener;
 import com.coffeecode.ui.map.builder.MapViewerBuilder;
 import com.coffeecode.ui.map.component.NodePopupMenu;
 import com.coffeecode.ui.map.service.IMapService;

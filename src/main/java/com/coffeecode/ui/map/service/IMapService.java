@@ -2,8 +2,8 @@ package com.coffeecode.ui.map.service;
 
 import org.jxmapviewer.JXMapViewer;
 
+import com.coffeecode.listener.NodeChangeListener;
 import com.coffeecode.model.LocationNode;
-import com.coffeecode.ui.listener.NodeChangeListener;
 
 public interface IMapService {
 

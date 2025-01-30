@@ -6,11 +6,11 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.jxmapviewer.JXMapViewer;
 
+import com.coffeecode.event.EventManager;
+import com.coffeecode.event.NodeEvent;
+import com.coffeecode.event.NodeEventType;
+import com.coffeecode.listener.NodeChangeListener;
 import com.coffeecode.model.LocationNode;
-import com.coffeecode.ui.event.EventManager;
-import com.coffeecode.ui.event.NodeEvent;
-import com.coffeecode.ui.event.NodeEventType;
-import com.coffeecode.ui.listener.NodeChangeListener;
 
 import lombok.extern.slf4j.Slf4j;
 

@@ -1,6 +1,7 @@
-package com.coffeecode.ui.event;
+package com.coffeecode.event;
 
 import com.coffeecode.model.LocationNode;
+
 import lombok.Getter;
 import java.util.EventObject;
 
