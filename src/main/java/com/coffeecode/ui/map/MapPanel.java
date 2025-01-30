@@ -2,165 +2,107 @@ package com.coffeecode.ui.map;
 
 import java.awt.BorderLayout;
 import java.awt.Point;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
-import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 import javax.swing.event.MouseInputListener;
 
 import org.jxmapviewer.JXMapViewer;
-import org.jxmapviewer.OSMTileFactoryInfo;
 import org.jxmapviewer.input.CenterMapListener;
 import org.jxmapviewer.input.PanKeyListener;
 import org.jxmapviewer.input.PanMouseInputListener;
 import org.jxmapviewer.input.ZoomMouseWheelListenerCenter;
-import org.jxmapviewer.viewer.DefaultTileFactory;
 import org.jxmapviewer.viewer.GeoPosition;
-import org.jxmapviewer.viewer.TileFactoryInfo;
-import org.jxmapviewer.viewer.Waypoint;
-import org.jxmapviewer.viewer.WaypointPainter;
 
-import com.coffeecode.model.LocationNode;
-import com.coffeecode.ui.listener.NodeChangeListener;
+import com.coffeecode.ui.map.builder.MapViewerBuilder;
+import com.coffeecode.ui.map.component.NodePopupMenu;
+import com.coffeecode.ui.map.exception.MapInitializationException;
+import com.coffeecode.ui.map.listener.NodeChangeListener;
+import com.coffeecode.ui.map.service.IMapService;
+import com.coffeecode.ui.map.service.MapService;
+import com.coffeecode.ui.map.state.MapState;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Getter
 public class MapPanel extends JPanel {
 
+    // Core components
     private final JXMapViewer mapViewer;
-    private final List<LocationNode> nodes;
-    private final Set<WaypointPainter<Waypoint>> painters;
-    private final JPopupMenu popupMenu;
-    private final JTextField locationNameField;
-
-    // Add event listener support
-    private final List<NodeChangeListener> nodeChangeListeners = new ArrayList<>();
+    private final MapState state;
+    private final IMapService mapService;
+    private NodePopupMenu popupMenu;
+    private MapPanelEvent eventHandler;
 
     public MapPanel() {
+        this(new MapService()); // Provide default implementation
+    }
+
+    public MapPanel(IMapService mapService) {
+        this.mapService = mapService;
+        this.state = new MapState();
+        this.mapViewer = createMapViewer();
+
+        initializeComponents();
+        setupEventHandlers();
+
+        log.info("MapPanel initialized");
+    }
+
+    private JXMapViewer createMapViewer() {
+        return MapViewerBuilder.create()
+                .withLocation(new GeoPosition(-6.2088, 106.8456))
+                .withZoom(7)
+                .build();
+    }
+
+    private void initializeComponents() {
         setLayout(new BorderLayout());
-        nodes = new ArrayList<>();
-        painters = new HashSet<>();
 
-        // Initialize map viewer
-        mapViewer = new JXMapViewer();
-        TileFactoryInfo info = new OSMTileFactoryInfo();
-        DefaultTileFactory tileFactory = new DefaultTileFactory(info);
-        mapViewer.setTileFactory(tileFactory);
+        // Initialize components
+        popupMenu = new NodePopupMenu();
+        eventHandler = new MapPanelEvent(this, mapService);
 
-        // Set default position (center of map)
-        GeoPosition jakarta = new GeoPosition(-6.2088, 106.8456);
-        mapViewer.setAddressLocation(jakarta);
-        mapViewer.setZoom(7);
-
-        // Add interactions
-        setupMapInteraction();
-
-        // Create popup menu
-        popupMenu = new JPopupMenu();
-        locationNameField = new JTextField(20);
-        setupPopupMenu();
-
-        // Add components
+        // Setup UI
         add(mapViewer, BorderLayout.CENTER);
     }
 
-    private void setupMapInteraction() {
+    private void setupEventHandlers() {
+        try {
+            setupMapControls();
+            setupNodePlacement();
+        } catch (Exception e) {
+            log.error("Failed to setup event handlers", e);
+            throw new MapInitializationException("Failed to initialize map panel", e);
+        }
+    }
+
+    private void setupMapControls() {
+        // Basic map controls
         MouseInputListener mia = new PanMouseInputListener(mapViewer);
         mapViewer.addMouseListener(mia);
         mapViewer.addMouseMotionListener(mia);
         mapViewer.addMouseListener(new CenterMapListener(mapViewer));
         mapViewer.addMouseWheelListener(new ZoomMouseWheelListenerCenter(mapViewer));
         mapViewer.addKeyListener(new PanKeyListener(mapViewer));
-
-        // Add right-click handler for node placement
-        mapViewer.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (SwingUtilities.isRightMouseButton(e)) {
-                    Point p = e.getPoint();
-                    GeoPosition geo = mapViewer.convertPointToGeoPosition(p);
-
-                    // Update location name field asynchronously
-                    new SwingWorker<String, Void>() {
-                        @Override
-                        protected String doInBackground() {
-                            return String.format("%.4f, %.4f", geo.getLatitude(), geo.getLongitude());
-                        }
-
-                        @Override
-                        protected void done() {
-                            try {
-                                locationNameField.setText(get());
-                            } catch (Exception ex) {
-                                locationNameField.setText("Error fetching location name");
-                            }
-                        }
-                    }.execute();
-
-                    popupMenu.show(mapViewer, p.x, p.y);
-                }
-            }
-        });
     }
 
-    private void setupPopupMenu() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.add(new JLabel("Location: "), BorderLayout.WEST);
-        panel.add(locationNameField, BorderLayout.CENTER);
+    private void setupNodePlacement() {
+        // Custom node placement listener
+        mapViewer.addMouseListener(eventHandler.createNodePlacementListener());
+    }
 
-        JButton addButton = new JButton("Add Node");
-        addButton.addActionListener(e -> {
-            Point p = popupMenu.getLocation();
-            GeoPosition geo = mapViewer.convertPointToGeoPosition(p);
-            addNode(new LocationNode(locationNameField.getText(), geo.getLatitude(), geo.getLongitude()));
-            popupMenu.setVisible(false);
-        });
-
-        panel.add(addButton, BorderLayout.EAST);
-        popupMenu.add(panel);
+    public void showPopup(GeoPosition position, Point point) {
+        state.setCurrentPosition(position);
+        popupMenu.show(mapViewer, point.x, point.y);
     }
 
     public void addNodeChangeListener(NodeChangeListener listener) {
-        nodeChangeListeners.add(listener);
+        mapService.addListener(listener);
     }
 
-    public void removeNodeChangeListener(NodeChangeListener listener) {
-        nodeChangeListeners.remove(listener);
-    }
-
-    private void notifyNodeAdded(LocationNode node) {
-        for (NodeChangeListener listener : nodeChangeListeners) {
-            listener.onNodeAdded(node);
-        }
-    }
-
-    public void addNode(LocationNode node) {
-        nodes.add(node);
-        updateWaypoints();
-        notifyNodeAdded(node);
-    }
-
-    private void updateWaypoints() {
-        Set<Waypoint> waypoints = new HashSet<>();
-        for (LocationNode node : nodes) {
-            waypoints.add(new MapWaypoint(
-                    new GeoPosition(node.getLatitude(), node.getLongitude()), node.getName()));
-        }
-
-        WaypointPainter<Waypoint> painter = new WaypointPainter<>();
-        painter.setWaypoints(waypoints);
-        mapViewer.setOverlayPainter(painter);
-        mapViewer.repaint();
+    public void updateWaypoints() {
+        mapService.updateWaypoints(mapViewer);
     }
 }
