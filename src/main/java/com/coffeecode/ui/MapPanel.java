@@ -4,11 +4,19 @@ import java.awt.BorderLayout;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.event.MouseInputListener;
 
 import org.jxmapviewer.JXMapViewer;
@@ -20,7 +28,10 @@ import org.jxmapviewer.input.ZoomMouseWheelListenerCenter;
 import org.jxmapviewer.viewer.DefaultTileFactory;
 import org.jxmapviewer.viewer.GeoPosition;
 import org.jxmapviewer.viewer.TileFactoryInfo;
+import org.jxmapviewer.viewer.Waypoint;
 import org.jxmapviewer.viewer.WaypointPainter;
+
+import com.coffeecode.model.Node;
 
 import lombok.Getter;
 
@@ -28,82 +39,121 @@ import lombok.Getter;
 public class MapPanel extends JPanel {
 
     private final JXMapViewer mapViewer;
-    private final Set<DefaultWaypoint> waypoints;
-    private final WaypointPainter<DefaultWaypoint> waypointPainter;
+    private final List<Node> nodes;
+    private final Set<WaypointPainter<Waypoint>> painters;
+    private final JPopupMenu popupMenu;
+    private final JTextField locationNameField;
 
     public MapPanel() {
         setLayout(new BorderLayout());
+        nodes = new ArrayList<>();
+        painters = new HashSet<>();
 
-        // Create a map viewer
+        // Initialize map viewer
         mapViewer = new JXMapViewer();
-        waypoints = new HashSet<>();
-        waypointPainter = new WaypointPainter<>();
-
-        // Setup OpenStreetMap
         TileFactoryInfo info = new OSMTileFactoryInfo();
         DefaultTileFactory tileFactory = new DefaultTileFactory(info);
         mapViewer.setTileFactory(tileFactory);
 
-        // Set default zoom and center position (e.g., London)
-        GeoPosition london = new GeoPosition(51.5, -0.12);
+        // Set default position (center of map)
+        GeoPosition jakarta = new GeoPosition(-6.2088, 106.8456);
+        mapViewer.setAddressLocation(jakarta);
         mapViewer.setZoom(7);
-        mapViewer.setAddressLocation(london);
 
         // Add interactions
         setupMapInteraction();
 
-        // Add click listener for adding waypoints
-        setupWaypointCreation();
+        // Create popup menu
+        popupMenu = new JPopupMenu();
+        locationNameField = new JTextField(20);
+        setupPopupMenu();
 
-        // Add the map viewer to the panel
-        add(new JScrollPane(mapViewer), BorderLayout.CENTER);
+        // Add components
+        add(mapViewer, BorderLayout.CENTER);
     }
 
     private void setupMapInteraction() {
-        // Add Mouse and Key interactions
         MouseInputListener mia = new PanMouseInputListener(mapViewer);
         mapViewer.addMouseListener(mia);
         mapViewer.addMouseMotionListener(mia);
         mapViewer.addMouseListener(new CenterMapListener(mapViewer));
         mapViewer.addMouseWheelListener(new ZoomMouseWheelListenerCenter(mapViewer));
         mapViewer.addKeyListener(new PanKeyListener(mapViewer));
-    }
 
-    private void setupWaypointCreation() {
+        // Add right-click handler for node placement
         mapViewer.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) { // Double click to add waypoint
+                if (SwingUtilities.isRightMouseButton(e)) {
                     Point p = e.getPoint();
                     GeoPosition geo = mapViewer.convertPointToGeoPosition(p);
-                    addWaypoint(geo);
+
+                    // Update location name field asynchronously
+                    new SwingWorker<String, Void>() {
+                        @Override
+                        protected String doInBackground() {
+                            return String.format("%.4f, %.4f", geo.getLatitude(), geo.getLongitude());
+                        }
+
+                        @Override
+                        protected void done() {
+                            try {
+                                locationNameField.setText(get());
+                            } catch (Exception ex) {
+                                locationNameField.setText("Error fetching location name");
+                            }
+                        }
+                    }.execute();
+
+                    popupMenu.show(mapViewer, p.x, p.y);
                 }
             }
         });
     }
 
-    public void addWaypoint(GeoPosition position) {
-        DefaultWaypoint waypoint = new DefaultWaypoint(position);
-        waypoints.add(waypoint);
-        updateWaypoints();
+    private void setupPopupMenu() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(new JLabel("Location: "), BorderLayout.WEST);
+        panel.add(locationNameField, BorderLayout.CENTER);
+
+        JButton addButton = new JButton("Add Node");
+        addButton.addActionListener(e -> {
+            Point p = popupMenu.getLocation();
+            GeoPosition geo = mapViewer.convertPointToGeoPosition(p);
+            addNode(new Node(locationNameField.getText(), geo.getLatitude(), geo.getLongitude()));
+            popupMenu.setVisible(false);
+        });
+
+        panel.add(addButton, BorderLayout.EAST);
+        popupMenu.add(panel);
     }
 
-    public void clearWaypoints() {
-        waypoints.clear();
+    public void addNode(Node node) {
+        nodes.add(node);
         updateWaypoints();
     }
 
     private void updateWaypoints() {
-        waypointPainter.setWaypoints(waypoints);
-        mapViewer.setOverlayPainter(waypointPainter);
+        Set<Waypoint> waypoints = new HashSet<>();
+        for (Node node : nodes) {
+            waypoints.add(new DefaultWaypoint(
+                    new GeoPosition(node.getLatitude(), node.getLongitude())));
+        }
+
+        WaypointPainter<Waypoint> painter = new WaypointPainter<>();
+        painter.setWaypoints(waypoints);
+        mapViewer.setOverlayPainter(painter);
         mapViewer.repaint();
     }
 
-    public Set<GeoPosition> getWaypointPositions() {
-        Set<GeoPosition> positions = new HashSet<>();
-        for (DefaultWaypoint waypoint : waypoints) {
-            positions.add(waypoint.getPosition());
-        }
-        return positions;
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Map Panel Test");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.add(new MapPanel());
+            frame.setSize(800, 600);
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+        });
     }
 }
