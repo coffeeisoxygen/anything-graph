@@ -1,4 +1,4 @@
-package com.coffeecode.ui.map.exception;
+package com.coffeecode.ui.exception;
 
 public class MapInitializationException extends RuntimeException {
 

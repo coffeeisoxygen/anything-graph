@@ -1,10 +1,17 @@
 package com.coffeecode.ui.map.service;
 
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+
 import org.jxmapviewer.JXMapViewer;
+
 import com.coffeecode.model.LocationNode;
-import com.coffeecode.ui.map.listener.NodeChangeListener;
+import com.coffeecode.ui.event.EventManager;
+import com.coffeecode.ui.event.NodeEvent;
+import com.coffeecode.ui.event.NodeEventType;
+import com.coffeecode.ui.listener.NodeChangeListener;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -12,14 +19,17 @@ public class MapService implements IMapService {
 
     private final Set<LocationNode> nodes = new CopyOnWriteArraySet<>();
     private final Set<NodeChangeListener> listeners = new CopyOnWriteArraySet<>();
+    private final EventManager eventManager = new EventManager();
     private LocationNode startNode;
     private LocationNode endNode;
 
     @Override
     public void addNode(LocationNode node) {
-        nodes.add(node);
-        notifyListeners(listener -> listener.onNodeAdded(node));
-        log.debug("Node added: {}", node);
+        if (nodes.add(node)) {
+            notifyListeners(listener -> listener.onNodeAdded(node));
+            eventManager.publish(new NodeEvent(this, node, NodeEventType.ADDED));
+            log.debug("Node added: {}", node);
+        }
     }
 
     @Override
@@ -34,6 +44,7 @@ public class MapService implements IMapService {
     public void updateStartNode(LocationNode node) {
         startNode = node;
         notifyListeners(listener -> listener.onStartNodeChanged(node));
+        eventManager.publish(new NodeEvent(this, node, NodeEventType.START_SET));
     }
 
     @Override
@@ -50,6 +61,8 @@ public class MapService implements IMapService {
     @Override
     public void addListener(NodeChangeListener listener) {
         listeners.add(listener);
+        Arrays.stream(NodeEventType.values())
+                .forEach(type -> eventManager.subscribe(type, listener));
     }
 
     private void notifyListeners(ListenerAction action) {

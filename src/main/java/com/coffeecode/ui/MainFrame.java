@@ -7,8 +7,8 @@ import javax.swing.JFrame;
 import javax.swing.JSplitPane;
 
 import com.coffeecode.model.LocationNode;
+import com.coffeecode.ui.listener.NodeChangeListener;
 import com.coffeecode.ui.map.MapPanel;
-import com.coffeecode.ui.map.listener.NodeChangeListener;
 import com.coffeecode.ui.panelgraph.GraphPanel;
 import com.coffeecode.ui.service.MainFrameService;
 import com.coffeecode.ui.toolbar.ToolbarPanel;
@@ -59,17 +59,6 @@ public class MainFrame extends JFrame {
     }
 
     private void setupEventHandlers() {
-        // Algorithm control
-        toolbar.getRunButton().addActionListener(e
-                -> service.startAlgorithm((String) toolbar.getAlgorithmSelector().getSelectedItem()));
-
-        toolbar.getStopButton().addActionListener(e
-                -> service.stopAlgorithm());
-
-        toolbar.getSpeedSlider().addChangeListener(e
-                -> service.setAnimationSpeed(toolbar.getSpeedSlider().getValue()));
-
-        // Node changes
         mapPanel.addNodeChangeListener(new NodeChangeListener() {
             @Override
             public void onNodeAdded(LocationNode node) {
