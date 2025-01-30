@@ -1,4 +1,4 @@
-package com.coffeecode.ui;
+package com.coffeecode.ui.panelmap;
 
 import java.awt.BorderLayout;
 import java.awt.Point;
@@ -31,6 +31,7 @@ import org.jxmapviewer.viewer.Waypoint;
 import org.jxmapviewer.viewer.WaypointPainter;
 
 import com.coffeecode.model.LocationNode;
+import com.coffeecode.ui.NodeChangeListener;
 
 import lombok.Getter;
 

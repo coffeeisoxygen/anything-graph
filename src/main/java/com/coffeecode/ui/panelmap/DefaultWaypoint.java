@@ -1,4 +1,4 @@
-package com.coffeecode.ui;
+package com.coffeecode.ui.panelmap;
 
 import org.jxmapviewer.viewer.DefaultWaypointRenderer;
 import org.jxmapviewer.viewer.GeoPosition;

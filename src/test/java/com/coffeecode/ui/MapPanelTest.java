@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
 import com.coffeecode.model.LocationNode;
+import com.coffeecode.ui.panelmap.MapPanel;
 
 class MapPanelTest {
 

@@ -1,12 +1,17 @@
 package com.coffeecode.util;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public class NominatimService {
+
+    private NominatimService() {
+        throw new IllegalStateException("Utility class");
+    }
 
     private static final String NOMINATIM_API = "https://nominatim.openstreetmap.org/reverse";
 
@@ -33,8 +38,8 @@ public class NominatimService {
                         .split("\"display_name\":\"")[1]
                         .split("\"")[0];
             }
-        } catch (Exception e) {
-            return "Location name unavailable";
+        } catch (IOException | ArrayIndexOutOfBoundsException e) {
+            return "Undefined";
         }
     }
 }
