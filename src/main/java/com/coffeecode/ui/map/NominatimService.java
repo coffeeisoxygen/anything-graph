@@ -1,4 +1,4 @@
-package com.coffeecode.ui.panelmap;
+package com.coffeecode.ui.map;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package com.coffeecode.ui.panelmap;
+package com.coffeecode.ui.map;
 
 import java.awt.BorderLayout;
 import java.awt.Point;
@@ -155,7 +155,7 @@ public class MapPanel extends JPanel {
         Set<Waypoint> waypoints = new HashSet<>();
         for (LocationNode node : nodes) {
             waypoints.add(new MapWaypoint(
-                    new GeoPosition(node.getLatitude(), node.getLongitude())));
+                    new GeoPosition(node.getLatitude(), node.getLongitude()), node.getName()));
         }
 
         WaypointPainter<Waypoint> painter = new WaypointPainter<>();
