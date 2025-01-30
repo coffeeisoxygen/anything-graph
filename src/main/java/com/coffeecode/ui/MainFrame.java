@@ -1,54 +1,61 @@
 package com.coffeecode.ui;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import javax.swing.*;
 import java.awt.*;
 
+@Slf4j
 @Getter
 public class MainFrame extends JFrame {
-
     private final MapPanel mapPanel;
     private final GraphPanel graphPanel;
     private final JToolBar toolBar;
 
     public MainFrame() {
         super("Graph Algorithm Visualizer");
+        log.debug("Initializing main frame...");
+        
+        initializeFrame();
+        initializeComponents();
+        setupLayout();
+        
+        log.info("Main frame initialized successfully");
+    }
 
-        // Basic frame setup
+    private void initializeFrame() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setPreferredSize(new Dimension(1200, 800));
+    }
 
+    private void initializeComponents() {
         try {
-            // Initialize panels
             mapPanel = new MapPanel();
             graphPanel = new GraphPanel();
             toolBar = createToolBar();
-
-            // Layout setup
-            setLayout(new BorderLayout());
-
-            JSplitPane splitPane = new JSplitPane(
-                    JSplitPane.HORIZONTAL_SPLIT,
-                    mapPanel,
-                    graphPanel
-            );
-            splitPane.setResizeWeight(0.5);
-
-            add(toolBar, BorderLayout.NORTH);
-            add(splitPane, BorderLayout.CENTER);
-
-            pack();
-            setLocationRelativeTo(null);
-
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
-                    "Error initializing application: " + e.getMessage(),
-                    "Initialization Error",
-                    JOptionPane.ERROR_MESSAGE);
-            throw new RuntimeException(e);
+            log.error("Failed to initialize components", e);
+            throw new RuntimeException("Component initialization failed", e);
         }
     }
 
+    private void setupLayout() {
+        setLayout(new BorderLayout());
+        
+        JSplitPane splitPane = new JSplitPane(
+            JSplitPane.HORIZONTAL_SPLIT,
+            mapPanel,
+            graphPanel
+        );
+        splitPane.setResizeWeight(0.5);
+        
+        add(toolBar, BorderLayout.NORTH);
+        add(splitPane, BorderLayout.CENTER);
+        
+        pack();
+        setLocationRelativeTo(null);
+    }
+    
     private JToolBar createToolBar() {
         JToolBar bar = new JToolBar();
         bar.setFloatable(false);
