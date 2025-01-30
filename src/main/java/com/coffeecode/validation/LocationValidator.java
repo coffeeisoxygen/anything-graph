@@ -4,43 +4,37 @@ import com.coffeecode.model.Location;
 import jakarta.validation.*;
 import lombok.extern.slf4j.Slf4j;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
-public class LocationValidator implements Validator<Location> {
+public class LocationValidator {
 
-    private static final jakarta.validation.Validator validator;
+    private static final Validator validator;
 
     static {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
 
-    @Override
-    public ValidationResult validate(Location location) {
+    /**
+     * Main validation method that handles both basic validation and duplicate
+     * check
+     */
+    public void validateLocation(Location location, Collection<Location> existingLocations) {
+        // Basic validation
         Set<ConstraintViolation<Location>> violations = validator.validate(location);
         if (!violations.isEmpty()) {
-            return ValidationResult.failure(
-                    violations.stream()
-                            .map(ConstraintViolation::getMessage)
-                            .toList()
-            );
-        }
-        return ValidationResult.success();
-    }
-
-    @Override
-    public ValidationResult validateNew(Location newLocation, Iterable<Location> existing) {
-        ValidationResult basicValidation = validate(newLocation);
-        if (!basicValidation.isValid()) {
-            return basicValidation;
+            String errors = violations.stream()
+                    .map(ConstraintViolation::getMessage)
+                    .collect(Collectors.joining(", "));
+            throw new IllegalArgumentException("Invalid location: " + errors);
         }
 
-        for (Location existingLocation : existing) {
-            if (existingLocation.isSameLocation(newLocation)) {
-                return ValidationResult.failure("Location with these coordinates already exists");
-            }
+        // Duplicate check
+        boolean isDuplicate = existingLocations.stream()
+                .anyMatch(loc -> loc.isSameLocation(location));
+        if (isDuplicate) {
+            throw new IllegalArgumentException("Location already exists");
         }
-
-        return ValidationResult.success();
     }
 }
