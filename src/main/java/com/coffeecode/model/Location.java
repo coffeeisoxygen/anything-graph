@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Getter
 @ToString
 @Builder
-public class Location implements ILocation {
+public class Location {
 
     private static final AtomicLong ID_GENERATOR = new AtomicLong(1);
     private final Long id;
@@ -39,7 +39,6 @@ public class Location implements ILocation {
         ID_GENERATOR.set(1);
     }
 
-    @Override
     public double distanceTo(Location other) {
         final double R = 6371; // Radius of Earth in km
         double lat1 = Math.toRadians(this.latitude);
@@ -57,12 +56,10 @@ public class Location implements ILocation {
         return R * c; // Result in kilometers
     }
 
-    @Override
     public String getDisplayName() {
         return String.format("%s (%.2f, %.2f)", name, latitude, longitude);
     }
 
-    @Override
     public boolean isSameLocation(Location other) {
         if (other == null) {
             return false;

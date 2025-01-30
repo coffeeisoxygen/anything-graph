@@ -1,6 +1,5 @@
 package com.coffeecode.validation;
 
-import com.coffeecode.model.ILocation;
 import com.coffeecode.model.Location;
 import jakarta.validation.*;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +35,7 @@ public class LocationValidator implements Validator<Location> {
             return basicValidation;
         }
 
-        for (ILocation existingLocation : existing) {
+        for (Location existingLocation : existing) {
             if (existingLocation.isSameLocation(newLocation)) {
                 return ValidationResult.failure("Location with these coordinates already exists");
             }
