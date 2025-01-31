@@ -72,7 +72,6 @@ public class DFS implements GraphAlgorithm {
         return path;
     }
 
-    @Override
     public String getName() {
         return "Depth-First Search";
     }

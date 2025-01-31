@@ -65,7 +65,7 @@ public class BFS implements GraphAlgorithm {
         return path;
     }
 
-    @Override
+    
     public String getName() {
         return "Breadth-First Search";
     }

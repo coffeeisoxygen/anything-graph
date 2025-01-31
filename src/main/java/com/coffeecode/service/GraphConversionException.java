@@ -1,4 +1,4 @@
-package com.coffeecode.util;
+package com.coffeecode.service;
 
 public class GraphConversionException extends RuntimeException {
 

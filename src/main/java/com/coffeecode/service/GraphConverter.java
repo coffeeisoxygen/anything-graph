@@ -1,9 +1,13 @@
-package com.coffeecode.util;
+package com.coffeecode.service;
+
+import org.graphstream.graph.EdgeRejectedException;
+import org.graphstream.graph.ElementNotFoundException;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.IdAlreadyInUseException;
 
 import com.coffeecode.model.LocationEdge;
 import com.coffeecode.model.LocationGraph;
 import com.coffeecode.model.LocationNode;
-import org.graphstream.graph.Graph;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,7 +50,7 @@ public class GraphConverter {
             log.debug("Graph conversion completed: {} nodes, {} edges",
                     target.getNodeCount(), target.getEdgeCount());
 
-        } catch (Exception e) {
+        } catch (EdgeRejectedException | ElementNotFoundException | IdAlreadyInUseException e) {
             log.error("Error converting graph", e);
             throw new GraphConversionException("Failed to convert graph", e);
         }
