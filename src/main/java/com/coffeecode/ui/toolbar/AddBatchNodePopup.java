@@ -217,6 +217,41 @@ public class AddBatchNodePopup extends JDialog {
         }.execute();
     }
 
+    private void retrySelectedLocations() {
+        int[] selectedRows = table.getSelectedRows();
+        if (selectedRows.length == 0) {
+            return;
+        }
+
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        statusLabel.setText("Retrying selected locations...");
+
+        new SwingWorker<Void, LocationSearchResult>() {
+            @Override
+            protected Void doInBackground() {
+                for (int row : selectedRows) {
+                    String locationName = (String) tableModel.getValueAt(row, 0);
+                    if (locationName != null && !locationName.trim().isEmpty()) {
+                        searchLocationWithRetry(row, locationName);
+                        sleepBetweenRequests();
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void process(List<LocationSearchResult> results) {
+                results.forEach(AddBatchNodePopup.this::updateTableRow);
+            }
+
+            @Override
+            protected void done() {
+                setCursor(Cursor.getDefaultCursor());
+                statusLabel.setText("Retry completed");
+            }
+        }.execute();
+    }
+
     private void updateTableRow(LocationSearchResult result) {
         if (result.error != null) {
             tableModel.setValueAt("Error: " + result.error.getMessage(), result.row, 3);
