@@ -41,29 +41,125 @@ class LocationGraphTest {
     }
 
     @Nested
+    @DisplayName("Node Operations")
+    class NodeOperations {
+
+        @Test
+        @DisplayName("Should add nodes successfully")
+        void addNodes() {
+            assertThat(graph.addNode(nodeA)).isTrue();
+            assertThat(graph.addNode(nodeB)).isTrue();
+            assertThat(graph.getNodeCount()).isEqualTo(2);
+            assertThat(graph.getNodes()).containsExactlyInAnyOrder(nodeA, nodeB);
+        }
+
+        @Test
+        @DisplayName("Should prevent duplicate nodes")
+        void preventDuplicates() {
+            graph.addNode(nodeA);
+            assertThat(graph.addNode(nodeA)).isFalse();
+            assertThat(graph.getNodeCount()).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("Should remove nodes correctly")
+        void removeNodes() {
+            graph.addNode(nodeA);
+            graph.addNode(nodeB);
+
+            assertThat(graph.removeNode(nodeA)).isTrue();
+            assertThat(graph.hasNode(nodeA)).isFalse();
+            assertThat(graph.getNodeCount()).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("Should handle invalid node removal")
+        void handleInvalidRemoval() {
+            assertThat(graph.removeNode(nodeA)).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("Edge Operations")
+    class EdgeOperations {
+
+        @BeforeEach
+        void setupNodes() {
+            graph.addNode(nodeA);
+            graph.addNode(nodeB);
+            graph.addNode(nodeC);
+        }
+
+        @Test
+        @DisplayName("Should add edges successfully")
+        void addEdges() {
+            assertThat(graph.addEdge(edgeAB)).isTrue();
+            assertThat(graph.addEdge(edgeBC)).isTrue();
+            assertThat(graph.getEdgeCount()).isEqualTo(2);
+            assertThat(graph.getEdges(nodeA)).contains(edgeAB);
+        }
+
+        @Test
+        @DisplayName("Should prevent duplicate edges")
+        void preventDuplicateEdges() {
+            graph.addEdge(edgeAB);
+            assertThat(graph.addEdge(edgeAB)).isFalse();
+            assertThat(graph.getEdgeCount()).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("Should remove edges correctly")
+        void removeEdges() {
+            graph.addEdge(edgeAB);
+            assertThat(graph.removeEdge(edgeAB)).isTrue();
+            assertThat(graph.getEdgeCount()).isEqualTo(0);
+            assertThat(graph.getEdges(nodeA)).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should auto-add missing nodes when adding edges")
+        void autoAddNodes() {
+            LocationNode nodeD = new LocationNode("D", 3, 3);
+            LocationEdge edgeCD = new LocationEdge(nodeC, nodeD, 1.0);
+
+            graph.addEdge(edgeCD);
+            assertThat(graph.hasNode(nodeD)).isTrue();
+            assertThat(graph.hasEdge(edgeCD)).isTrue();
+        }
+    }
+
+    @Nested
     @DisplayName("Graph Structure")
     class GraphStructure {
 
         @Test
-        @DisplayName("Should support traversal")
-        void traversal() throws InterruptedException {
-            // Build graph with event waits
+        @DisplayName("Should handle clear operation")
+        void clearGraph() throws InterruptedException {
             graph.addNode(nodeA);
-            testHelper.waitForEvents();
-
             graph.addNode(nodeB);
-            testHelper.waitForEvents();
-
-            graph.addNode(nodeC);
-            testHelper.waitForEvents();
-
             graph.addEdge(edgeAB);
             testHelper.waitForEvents();
 
+            graph.clear();
+            testHelper.waitForEvents();
+
+            assertThat(graph.getNodeCount()).isZero();
+            assertThat(graph.getEdgeCount()).isZero();
+            assertThat(graph.getNodes()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should support traversal")
+        void traversal() throws InterruptedException {
+            // Build graph
+            graph.addNode(nodeA);
+            graph.addNode(nodeB);
+            graph.addNode(nodeC);
+            graph.addEdge(edgeAB);
             graph.addEdge(edgeBC);
             testHelper.waitForEvents();
 
-            // Perform traversal
+            // BFS traversal
             Set<LocationNode> reachable = new HashSet<>();
             Queue<LocationNode> queue = new LinkedList<>();
             queue.add(nodeA);
@@ -82,6 +178,44 @@ class LocationGraphTest {
             assertThat(reachable)
                     .containsExactlyInAnyOrder(nodeA, nodeB, nodeC)
                     .hasSize(3);
+        }
+    }
+
+    @Nested
+    @DisplayName("Event Publishing")
+    class EventPublishing {
+
+        @Test
+        @DisplayName("Should publish node events")
+        void nodeEvents() throws InterruptedException {
+            graph.addNode(nodeA);
+            testHelper.waitForEvents();
+
+            assertThat(testHelper.getEvents())
+                    .hasSize(1)
+                    .hasOnlyElementsOfType(GraphEvent.NodeAdded.class);
+
+            graph.removeNode(nodeA);
+            testHelper.waitForEvents();
+
+            assertThat(testHelper.getEvents())
+                    .hasSize(2)
+                    .element(1)
+                    .isInstanceOf(GraphEvent.NodeRemoved.class);
+        }
+
+        @Test
+        @DisplayName("Should publish edge events")
+        void edgeEvents() throws InterruptedException {
+            graph.addNode(nodeA);
+            graph.addNode(nodeB);
+            graph.addEdge(edgeAB);
+            testHelper.waitForEvents();
+
+            assertThat(testHelper.getEvents())
+                    .hasSize(3)
+                    .element(2)
+                    .isInstanceOf(GraphEvent.EdgeAdded.class);
         }
     }
 
