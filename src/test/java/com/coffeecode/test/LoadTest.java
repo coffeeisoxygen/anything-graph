@@ -1,8 +1,8 @@
 package com.coffeecode.test;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Map;
-import java.util.Random;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -92,14 +92,18 @@ public class LoadTest {
     @Test
     void shouldHandleConcurrentEdgeOperations() throws InterruptedException {
         LocationGraph graph = new LocationGraph();
-        Map<String, LocationNode> nodes = new ConcurrentHashMap<>();
+        List<LocationNode> nodes = new ArrayList<>();
         AtomicInteger successCount = new AtomicInteger(0);
         Set<String> failedEdges = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-        // Pre-create nodes
-        for (int i = 0; i < OPERATIONS_PER_THREAD * 2; i++) {
-            LocationNode node = new LocationNode("Node-" + i, i % 90, i % 180);
-            nodes.put(node.getId(), node);
+        // Pre-create nodes sequentially
+        for (int i = 0; i < THREAD_COUNT * OPERATIONS_PER_THREAD; i++) {
+            LocationNode node = new LocationNode(
+                    "Node-" + i,
+                    (i % 90),
+                    (i % 180)
+            );
+            nodes.add(node);
             graph.addNode(node);
         }
 
@@ -112,25 +116,35 @@ public class LoadTest {
         // Submit edge creation tasks
         for (int i = 0; i < THREAD_COUNT; i++) {
             final int threadId = i;
+            final int startIdx = threadId * OPERATIONS_PER_THREAD;
+
             executor.submit(() -> {
                 try {
                     startLatch.await();
-                    Random random = new Random();
 
-                    for (int j = 0; j < OPERATIONS_PER_THREAD; j++) {
-                        // Get random source and destination
-                        String sourceId = "Node-" + random.nextInt(OPERATIONS_PER_THREAD * 2);
-                        String destId = "Node-" + random.nextInt(OPERATIONS_PER_THREAD * 2);
+                    for (int j = 0; j < OPERATIONS_PER_THREAD - 1; j++) {
+                        // Sequential edge creation
+                        int sourceIdx = startIdx + j;
+                        int destIdx = startIdx + j + 1;
 
-                        LocationNode source = nodes.get(sourceId);
-                        LocationNode dest = nodes.get(destId);
+                        if (sourceIdx < nodes.size() && destIdx < nodes.size()) {
+                            LocationNode source = nodes.get(sourceIdx);
+                            LocationNode dest = nodes.get(destIdx);
 
-                        if (source != null && dest != null && !source.equals(dest)) {
-                            LocationEdge edge = new LocationEdge(source, dest, random.nextDouble() * 10 + 1);
+                            LocationEdge edge = new LocationEdge(
+                                    source,
+                                    dest,
+                                    1.0 + (j % 10)
+                            );
+
                             if (graph.addEdge(edge)) {
                                 successCount.incrementAndGet();
                             } else {
-                                failedEdges.add(String.format("Edge-%d-%d", threadId, j));
+                                String msg = String.format(
+                                        "Edge-%d-%d (source:%s, dest:%s)",
+                                        threadId, j, source.getId(), dest.getId()
+                                );
+                                failedEdges.add(msg);
                             }
                         }
                     }
@@ -151,11 +165,16 @@ public class LoadTest {
 
         // Performance metrics
         double operationsPerSecond = (successCount.get() * 1000.0) / duration;
-        System.out.printf("Performance Metrics:%n");
+        System.out.printf("Edge Test Performance:%n");
         System.out.printf("Total Duration: %d ms%n", duration);
-        System.out.printf("Successful Operations: %d%n", successCount.get());
+        System.out.printf("Successful Edges: %d%n", successCount.get());
         System.out.printf("Operations/second: %.2f%n", operationsPerSecond);
-        System.out.printf("Failed Operations: %d%n", failedEdges.size());
+        System.out.printf("Failed Edges: %d%n", failedEdges.size());
+
+        if (!failedEdges.isEmpty()) {
+            System.out.println("Failed Edge Details:");
+            failedEdges.forEach(System.out::println);
+        }
 
         // Assertions
         assertThat(completed).as("All operations should complete within timeout").isTrue();
