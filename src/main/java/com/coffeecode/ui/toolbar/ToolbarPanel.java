@@ -68,36 +68,40 @@ public class ToolbarPanel extends JToolBar {
     }
 
     private void setupLayout() {
-        // Upper control panel (Main controls)
-        JPanel mainControlPanel = new JPanel();
-        mainControlPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        mainControlPanel.add(addNodeButton);
-        mainControlPanel.add(addBatchNodeButton);
-        mainControlPanel.add(addEdgeButton);
-        mainControlPanel.add(removeNodeButton);
-        mainControlPanel.add(removeEdgeButton);
-        mainControlPanel.add(removeAllEdgesButton);
-        mainControlPanel.add(clearAllButton);
+        // Node control panel
+        JPanel nodeControlPanel = new JPanel();
+        nodeControlPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        nodeControlPanel.add(addNodeButton);
+        nodeControlPanel.add(addBatchNodeButton);
+        nodeControlPanel.add(removeNodeButton);
 
-        // Lower control panel (Animation controls)
-        JPanel animationControlPanel = new JPanel();
-        animationControlPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        mainControlPanel.add(new JLabel("Algorithm: "));
-        mainControlPanel.add(algorithmType);
-        mainControlPanel.add(algorithmSelector);
-        animationControlPanel.add(playButton);
-        animationControlPanel.add(pauseButton);
-        animationControlPanel.add(stopButton);
-        animationControlPanel.add(nextStepButton);
-        animationControlPanel.add(prevStepButton);
-        animationControlPanel.add(skipToEndButton);
-        animationControlPanel.add(new JLabel("Speed: "));
-        animationControlPanel.add(speedSlider);
+        // Edge control panel
+        JPanel edgeControlPanel = new JPanel();
+        edgeControlPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        edgeControlPanel.add(addEdgeButton);
+        edgeControlPanel.add(removeEdgeButton);
+        edgeControlPanel.add(removeAllEdgesButton);
+
+        // Selector and visualization control panel
+        JPanel selectorControlPanel = new JPanel();
+        selectorControlPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        selectorControlPanel.add(new JLabel("Algorithm: "));
+        selectorControlPanel.add(algorithmType);
+        selectorControlPanel.add(algorithmSelector);
+        selectorControlPanel.add(playButton);
+        selectorControlPanel.add(pauseButton);
+        selectorControlPanel.add(stopButton);
+        selectorControlPanel.add(nextStepButton);
+        selectorControlPanel.add(prevStepButton);
+        selectorControlPanel.add(skipToEndButton);
+        selectorControlPanel.add(new JLabel("Speed: "));
+        selectorControlPanel.add(speedSlider);
 
         // Add panels to toolbar
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        add(mainControlPanel);
-        add(animationControlPanel);
+        add(nodeControlPanel);
+        add(edgeControlPanel);
+        add(selectorControlPanel);
     }
 
     private void setupSlider() {
@@ -167,29 +171,28 @@ public class ToolbarPanel extends JToolBar {
 
     private void handleRemoveEdge() {
         RemoveEdgePopup.showDialog(
-            (JFrame) SwingUtilities.getWindowAncestor(this),
-            service
+                (JFrame) SwingUtilities.getWindowAncestor(this),
+                service
         );
     }
 
-
     private void handleClearAllEdges() {
         int result = JOptionPane.showConfirmDialog(
-            this,
-            "Are you sure you want to clear all edges?",
-            "Clear Edges",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
+                this,
+                "Are you sure you want to clear all edges?",
+                "Clear Edges",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
         );
-    
+
         if (result == JOptionPane.YES_OPTION) {
             GraphResult<Boolean> clearResult = service.clearEdges();
             if (!clearResult.isSuccess()) {
                 JOptionPane.showMessageDialog(
-                    this,
-                    "Failed to clear edges: " + clearResult.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE
+                        this,
+                        "Failed to clear edges: " + clearResult.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
                 );
             }
         }
@@ -197,21 +200,21 @@ public class ToolbarPanel extends JToolBar {
 
     private void handleClearAll() {
         int result = JOptionPane.showConfirmDialog(
-            this,
-            "Are you sure you want to clear all nodes and edges?",
-            "Clear Graph",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
+                this,
+                "Are you sure you want to clear all nodes and edges?",
+                "Clear Graph",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
         );
-    
+
         if (result == JOptionPane.YES_OPTION) {
             GraphResult<Boolean> clearResult = service.clearGraph();
             if (!clearResult.isSuccess()) {
                 JOptionPane.showMessageDialog(
-                    this,
-                    "Failed to clear graph: " + clearResult.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE
+                        this,
+                        "Failed to clear graph: " + clearResult.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
                 );
             }
         }
