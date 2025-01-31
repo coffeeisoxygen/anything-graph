@@ -17,51 +17,53 @@ import com.coffeecode.test.util.TestHelper;
 
 @DisplayName("LocationGraph Test Suite")
 class LocationGraphTest {
+
     private LocationGraph graph;
     private LocationNode nodeA, nodeB, nodeC;
     private LocationEdge edgeAB, edgeBC;
     private TestHelper testHelper;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws InterruptedException {
         graph = new LocationGraph();
-        testHelper = new TestHelper(graph);
-        
         nodeA = new LocationNode("A", 0, 0);
         nodeB = new LocationNode("B", 1, 1);
         nodeC = new LocationNode("C", 2, 2);
         edgeAB = new LocationEdge(nodeA, nodeB, 1.0);
         edgeBC = new LocationEdge(nodeB, nodeC, 2.0);
+        testHelper = new TestHelper(graph);
+        testHelper.waitForEvents();
     }
 
     @Nested
     @DisplayName("Node Operations")
     class NodeOperations {
+
         @Test
         @DisplayName("Should handle basic node operations")
         void basicOperations() throws InterruptedException {
             assertThat(graph.addNode(nodeA)).isTrue();
             testHelper.waitForEvents();
-            
+
             assertThat(graph.hasNode(nodeA)).isTrue();
             assertThat(graph.getNodeCount()).isEqualTo(1);
             assertThat(graph.getNodes()).contains(nodeA);
-            
+
             assertThat(testHelper.getEvents())
-                .hasSize(1)
-                .hasOnlyElementsOfType(GraphEvent.NodeAdded.class);
+                    .hasSize(1)
+                    .hasOnlyElementsOfType(GraphEvent.NodeAdded.class);
 
             assertThat(graph.addNode(nodeA)).isFalse(); // Duplicate
             testHelper.waitForEvents();
-            
+
             assertThat(graph.removeNode(nodeA)).isTrue();
             testHelper.waitForEvents();
-            
+
             assertThat(graph.hasNode(nodeA)).isFalse();
             assertThat(testHelper.getEvents())
-                .hasSize(2)
-                .element(1)
-                .isInstanceOf(GraphEvent.NodeRemoved.class);
+                    .hasSize(2)
+                    .element(1)
+                    .isInstanceOf(GraphEvent.NodeRemoved.class);
         }
 
         @Test
@@ -75,8 +77,9 @@ class LocationGraphTest {
     }
 
     @Nested
-    @DisplayName("Edge Operations") 
+    @DisplayName("Edge Operations")
     class EdgeOperations {
+
         @BeforeEach
         void setupNodes() throws InterruptedException {
             graph.addNode(nodeA);
@@ -169,15 +172,17 @@ class LocationGraphTest {
     }
 
     @Nested
-    @DisplayName("Event System")
-    class EventSystem {
+    @DisplayName("Event Publishing")
+    class EventPublishing {
 
         @Test
-        @DisplayName("Should publish events correctly")
-        void eventPublishing() {
+        @DisplayName("Should publish node and edge events")
+        void eventPublishing() throws InterruptedException {
             graph.addNode(nodeA);
+            graph.addNode(nodeB);
             graph.addEdge(edgeAB);
             graph.removeNode(nodeA);
+            testHelper.waitForEvents();
 
             assertThat(testHelper.getEvents())
                     .hasSize(4)

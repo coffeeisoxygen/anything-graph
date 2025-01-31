@@ -16,10 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TestHelper {
 
-    private static final int DEFAULT_WAIT_MS = 500; // Increased wait time
-    private final List<GraphEvent> events;
     private final LocationGraph graph;
-    private volatile CountDownLatch eventLatch;
+    private final List<GraphEvent> events;
+    private final CountDownLatch eventLatch;
     private final AtomicInteger expectedEvents = new AtomicInteger(0);
 
     public TestHelper(LocationGraph graph) {
@@ -72,25 +71,15 @@ public class TestHelper {
         graph.subscribe(GraphEvent.EdgeRemoved.class, edgeRemovedListener);
     }
 
-    public void expectEvents(int count) {
-        expectedEvents.set(count);
-        eventLatch = new CountDownLatch(1);
+    public List<GraphEvent> getEvents() {
+        return events;
     }
 
     public void waitForEvents() throws InterruptedException {
-        if (!eventLatch.await(DEFAULT_WAIT_MS, TimeUnit.MILLISECONDS)) {
-            log.warn("Timeout waiting for events. Expected: {}, Received: {}",
-                    expectedEvents.get(), events.size());
-        }
-    }
-
-    public List<GraphEvent> getEvents() {
-        return new ArrayList<>(events);
+        eventLatch.await(100, TimeUnit.MILLISECONDS);
     }
 
     public void clearEvents() {
         events.clear();
-        expectedEvents.set(0);
-        eventLatch = new CountDownLatch(1);
     }
 }
