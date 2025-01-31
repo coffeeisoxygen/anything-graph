@@ -128,8 +128,8 @@ public class ToolbarPanel extends JToolBar {
 
     private void handleAddBatchNode() {
         AddBatchNodePopup.showPopup(
-            (JFrame) SwingUtilities.getWindowAncestor(this),
-            service
+                (JFrame) SwingUtilities.getWindowAncestor(this),
+                service
         );
     }
 
@@ -155,7 +155,10 @@ public class ToolbarPanel extends JToolBar {
     }
 
     private void handleAddEdge() {
-        System.out.println("Add Edge action triggered");
+        AddEdgePopup.showDialog(
+                (JFrame) SwingUtilities.getWindowAncestor(this),
+                service
+        );
     }
 
     private void handleRemoveEdge() {

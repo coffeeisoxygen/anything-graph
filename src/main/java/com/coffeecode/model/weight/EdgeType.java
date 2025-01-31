@@ -1,8 +1,14 @@
 package com.coffeecode.model.weight;
 
-public enum EdgeType {
-    HAVERSINE,
-    EUCLIDEAN,
-    UNIT;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@Getter
+@RequiredArgsConstructor
+public enum EdgeType {
+    HAVERSINE("Distance Based"),
+    EUCLIDEAN("Direct Line"),
+    UNIT("Unit Weight");
+
+    private final String displayName;
 }

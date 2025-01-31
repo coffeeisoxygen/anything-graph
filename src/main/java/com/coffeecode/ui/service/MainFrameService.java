@@ -14,6 +14,7 @@ import com.coffeecode.ui.panelgraph.GraphPanel;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.SingleGraph;
@@ -88,6 +89,7 @@ public class MainFrameService {
         }
     }
 
+    // get node count
     public GraphResult<Integer> getNodeCount() {
         try {
             return GraphResult.success(locationGraph.getNodeCount());
@@ -97,6 +99,7 @@ public class MainFrameService {
         }
     }
 
+    // claer graph
     public GraphResult<Boolean> clearGraph() {
         try {
             locationGraph.clear();
@@ -107,6 +110,7 @@ public class MainFrameService {
         }
     }
 
+    // Remove eDGE
     public GraphResult<Boolean> removeNode(String id) {
         try {
             LocationNode node = findNodeById(id);
@@ -124,6 +128,7 @@ public class MainFrameService {
         }
     }
 
+    // Find Node ID
     private LocationNode findNodeById(String id) {
         return locationGraph.getNodes().stream()
                 .filter(node -> node.getId().equals(id))
@@ -131,6 +136,7 @@ public class MainFrameService {
                 .orElse(null);
     }
 
+    // add edges
     public GraphResult<Boolean> addEdge(String sourceId, String targetId, EdgeType type) {
         try {
             LocationNode source = findNodeById(sourceId);
@@ -147,7 +153,8 @@ public class MainFrameService {
                     WeightStrategies.EUCLIDEAN_DISTANCE;
                 case UNIT ->
                     WeightStrategies.UNIT_WEIGHT;
-                default -> throw new IllegalArgumentException("Unknown EdgeType: " + type);
+                default ->
+                    throw new IllegalArgumentException("Unknown EdgeType: " + type);
             };
 
             double weight = strategy.calculateWeight(source, target);
@@ -183,6 +190,41 @@ public class MainFrameService {
         return strategy.calculateWeight(source, target);
     }
 
+    // Auto Connect All Edges
+    public GraphResult<Integer> autoConnectNodes(double threshold, EdgeType type) {
+        try {
+            Set<LocationNode> nodes = locationGraph.getNodes();
+            int connections = 0;
+
+            for (LocationNode source : nodes) {
+                for (LocationNode target : nodes) {
+                    if (source == target) {
+                        continue;
+                    }
+
+                    double weight = calculateEdgeWeight(
+                            source.getId(), target.getId(), type);
+
+                    if (weight <= threshold) {
+                        boolean added = locationGraph.addEdge(
+                                new LocationEdge(source, target, weight));
+                        if (added) {
+                            connections++;
+                        }
+                    }
+                }
+            }
+
+            return connections > 0
+                    ? GraphResult.success(connections)
+                    : GraphResult.failure("No connections made within threshold");
+
+        } catch (Exception e) {
+            log.error("Auto-connect failed: {}", e.getMessage());
+            return GraphResult.failure(e.getMessage());
+        }
+    }
+
     private void updateVisualization() {
         try {
             GraphConverter.updateGraphVisualization(locationGraph, visualGraph);
@@ -212,13 +254,13 @@ public class MainFrameService {
     }
 
     public Set<String> getAllNodeIds() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAllNodeIds'");
+        return locationGraph.getNodes().stream()
+                .map(LocationNode::getId)
+                .collect(Collectors.toSet());
     }
 
     public GraphResult<Integer> autoConnectNodes() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'autoConnectNodes'");
+        throw new UnsupportedOperationException("Use autoConnectNodes(threshold, type) instead");
     }
 
 }
