@@ -11,6 +11,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +58,30 @@ public class AddBatchNodePopup extends JDialog {
         add(createInfoPanel(), BorderLayout.NORTH);
         add(new JScrollPane(table), BorderLayout.CENTER);
         add(createButtonPanel(), BorderLayout.SOUTH);
+        table.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    int row = table.getSelectedRow();
+                    if (row == tableModel.getRowCount() - 1) {
+                        addEmptyRow();
+                    }
+                    table.changeSelection(row + 1, 0, false, false);
+                }
+            }
+        });
+
+        // Add popup menu
+        JPopupMenu popupMenu = createPopupMenu();
+        table.setComponentPopupMenu(popupMenu);
+    }
+
+    private JPopupMenu createPopupMenu() {
+        JPopupMenu menu = new JPopupMenu();
+        JMenuItem retryItem = new JMenuItem("Retry Selected");
+        retryItem.addActionListener(e -> retrySelectedLocations());
+        menu.add(retryItem);
+        return menu;
     }
 
     private JPanel createInfoPanel() {
