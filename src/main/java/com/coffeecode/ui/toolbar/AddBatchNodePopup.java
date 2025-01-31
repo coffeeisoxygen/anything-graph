@@ -158,66 +158,19 @@ public class AddBatchNodePopup extends JDialog {
             return;
         }
 
-        executeLocationSearch();
+        // Use LocationSearchWorker instead of anonymous class
+        new LocationSearchWorker(getAllRowIndices()).execute();
     }
 
-    private void executeLocationSearch() {
-        new SwingWorker<Void, LocationSearchResult>() {
-            @Override
-            protected Void doInBackground() {
-                for (int i = 0; i < tableModel.getRowCount(); i++) {
-                    String locationName = (String) tableModel.getValueAt(i, 0);
-                    if (locationName != null && !locationName.trim().isEmpty()) {
-                        searchLocationWithRetry(i, locationName);
-                        sleepBetweenRequests();
-                    }
-                }
-                return null;
+    private int[] getAllRowIndices() {
+        List<Integer> indices = new ArrayList<>();
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            String locationName = (String) tableModel.getValueAt(i, 0);
+            if (locationName != null && !locationName.trim().isEmpty()) {
+                indices.add(i);
             }
-
-            private void searchLocationWithRetry(int row, String locationName) {
-                Exception lastError = null;
-                for (int attempt = 0; attempt < RETRY_ATTEMPTS; attempt++) {
-                    try {
-                        double[] coords = nominatimService.findLongLat(locationName);
-                        publish(new LocationSearchResult(row, coords, null));
-                        return;
-                    } catch (Exception e) {
-                        lastError = e;
-                        log.warn("Attempt {} failed for {}: {}", attempt + 1, locationName, e.getMessage());
-                        sleepBetweenAttempts(attempt);
-                    }
-                }
-                publish(new LocationSearchResult(row, null, lastError));
-            }
-
-            private void sleepBetweenRequests() {
-                try {
-                    Thread.sleep(RATE_LIMIT_DELAY);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-
-            private void sleepBetweenAttempts(int attempt) {
-                try {
-                    Thread.sleep(RATE_LIMIT_DELAY * (attempt + 1));
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-
-            @Override
-            protected void process(List<LocationSearchResult> results) {
-                results.forEach(AddBatchNodePopup.this::updateTableRow);
-            }
-
-            @Override
-            protected void done() {
-                setCursor(Cursor.getDefaultCursor());
-                statusLabel.setText("Location search completed");
-            }
-        }.execute();
+        }
+        return indices.stream().mapToInt(Integer::intValue).toArray();
     }
 
     private void retrySelectedLocations() {
@@ -232,6 +185,68 @@ public class AddBatchNodePopup extends JDialog {
         new LocationSearchWorker(selectedRows).execute();
     }
 
+    // private void executeLocationSearch() {
+    //     new SwingWorker<Void, LocationSearchResult>() {
+    //         @Override
+    //         protected Void doInBackground() {
+    //             for (int i = 0; i < tableModel.getRowCount(); i++) {
+    //                 String locationName = (String) tableModel.getValueAt(i, 0);
+    //                 if (locationName != null && !locationName.trim().isEmpty()) {
+    //                     searchLocationWithRetry(i, locationName);
+    //                     sleepBetweenRequests();
+    //                 }
+    //             }
+    //             return null;
+    //         }
+    //         private void searchLocationWithRetry(int row, String locationName) {
+    //             Exception lastError = null;
+    //             for (int attempt = 0; attempt < RETRY_ATTEMPTS; attempt++) {
+    //                 try {
+    //                     double[] coords = nominatimService.findLongLat(locationName);
+    //                     publish(new LocationSearchResult(row, coords, null));
+    //                     return;
+    //                 } catch (Exception e) {
+    //                     lastError = e;
+    //                     log.warn("Attempt {} failed for {}: {}", attempt + 1, locationName, e.getMessage());
+    //                     sleepBetweenAttempts(attempt);
+    //                 }
+    //             }
+    //             publish(new LocationSearchResult(row, null, lastError));
+    //         }
+    //         private void sleepBetweenRequests() {
+    //             try {
+    //                 Thread.sleep(RATE_LIMIT_DELAY);
+    //             } catch (InterruptedException e) {
+    //                 Thread.currentThread().interrupt();
+    //             }
+    //         }
+    //         private void sleepBetweenAttempts(int attempt) {
+    //             try {
+    //                 Thread.sleep(RATE_LIMIT_DELAY * (attempt + 1));
+    //             } catch (InterruptedException e) {
+    //                 Thread.currentThread().interrupt();
+    //             }
+    //         }
+    //         @Override
+    //         protected void process(List<LocationSearchResult> results) {
+    //             results.forEach(AddBatchNodePopup.this::updateTableRow);
+    //         }
+    //         @Override
+    //         protected void done() {
+    //             setCursor(Cursor.getDefaultCursor());
+    //             statusLabel.setText("Location search completed");
+    //         }
+    //     }.execute();
+    // }
+    // private void retrySelectedLocations() {
+    //     int[] selectedRows = table.getSelectedRows();
+    //     if (selectedRows.length == 0) {
+    //         return;
+    //     }
+    //     setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+    //     statusLabel.setText("Retrying selected locations...");
+    //     new LocationSearchWorker(selectedRows).execute();
+    // }
     private void updateTableRow(LocationSearchResult result) {
         if (result.error != null) {
             tableModel.setValueAt("Error: " + result.error.getMessage(), result.row, 3);
@@ -286,15 +301,17 @@ public class AddBatchNodePopup extends JDialog {
     // Inner class for the search worker
     private class LocationSearchWorker extends SwingWorker<Void, LocationSearchResult> {
 
-        private final int[] selectedRows;
+        private final int[] rows;
+        private final String operationType;
 
-        LocationSearchWorker(int[] selectedRows) {
-            this.selectedRows = selectedRows;
+        LocationSearchWorker(int[] rows) {
+            this.rows = rows;
+            this.operationType = rows == table.getSelectedRows() ? "Retry" : "Search";
         }
 
         @Override
         protected Void doInBackground() {
-            for (int row : selectedRows) {
+            for (int row : rows) {
                 String locationName = (String) tableModel.getValueAt(row, 0);
                 if (locationName != null && !locationName.trim().isEmpty()) {
                     searchLocationWithRetry(row, locationName);
@@ -304,17 +321,6 @@ public class AddBatchNodePopup extends JDialog {
             return null;
         }
 
-        @Override
-        protected void process(List<LocationSearchResult> results) {
-            results.forEach(AddBatchNodePopup.this::updateTableRow);
-        }
-
-        @Override
-        protected void done() {
-            setCursor(Cursor.getDefaultCursor());
-            statusLabel.setText("Retry completed");
-        }
-
         private void searchLocationWithRetry(int row, String locationName) {
             Exception lastError = null;
             for (int attempt = 0; attempt < RETRY_ATTEMPTS; attempt++) {
@@ -322,9 +328,9 @@ public class AddBatchNodePopup extends JDialog {
                     double[] coords = nominatimService.findLongLat(locationName);
                     publish(new LocationSearchResult(row, coords, null));
                     return;
-                } catch (IllegalArgumentException e) {
+                } catch (Exception e) {
                     lastError = e;
-                    log.warn("Invalid location on attempt {} for {}: {}",
+                    log.warn("Attempt {} failed for {}: {}",
                             attempt + 1, locationName, e.getMessage());
                     sleepBetweenAttempts(attempt);
                 }
@@ -342,11 +348,21 @@ public class AddBatchNodePopup extends JDialog {
 
         private void sleepBetweenAttempts(int attempt) {
             try {
-                // Exponential backoff
                 Thread.sleep(RATE_LIMIT_DELAY * (long) Math.pow(2, attempt));
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
+        }
+
+        @Override
+        protected void process(List<LocationSearchResult> results) {
+            results.forEach(AddBatchNodePopup.this::updateTableRow);
+        }
+
+        @Override
+        protected void done() {
+            setCursor(Cursor.getDefaultCursor());
+            statusLabel.setText(operationType + " completed");
         }
     }
 
