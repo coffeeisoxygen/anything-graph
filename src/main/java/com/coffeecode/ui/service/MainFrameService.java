@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.SingleGraph;
 
@@ -257,7 +258,6 @@ public class MainFrameService {
         }
     }
 
-
     public GraphResult<Boolean> clearGraph() {
         try {
             locationGraph.clearAll();
@@ -268,7 +268,27 @@ public class MainFrameService {
             log.error("Failed to clear graph: {}", e.getMessage());
             return GraphResult.failure(e.getMessage());
         }
-    }    
+    }
+
+    public GraphResult<Boolean> clearEdges() {
+        try {
+            // Clear logical edges
+            locationGraph.clearEdges();
+
+            // Clear only edges in visual graph
+            for (Edge edge : visualGraph.edges().toArray(Edge[]::new)) {
+                visualGraph.removeEdge(edge);
+            }
+
+            // Refresh panel
+            graphPanel.refresh();
+            return GraphResult.success(true);
+        } catch (Exception e) {
+            log.error("Failed to clear edges: {}", e.getMessage());
+            return GraphResult.failure(e.getMessage());
+        }
+    }
+
     public void startAlgorithm() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'startAlgorithm'");
@@ -282,5 +302,4 @@ public class MainFrameService {
     public void stopAlgorithm() {
         //TODO
     }
-
 }

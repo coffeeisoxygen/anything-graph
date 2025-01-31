@@ -31,6 +31,7 @@ public class ToolbarPanel extends JToolBar {
     private final JButton removeNodeButton;
     private final JButton addEdgeButton;
     private final JButton removeEdgeButton;
+    private final JButton removeAllEdgesButton;
     private final JButton clearAllButton;
     private final JButton playButton;
     private final JButton pauseButton;
@@ -50,6 +51,7 @@ public class ToolbarPanel extends JToolBar {
         addNodeButton = new JButton("Add Node");
         addBatchNodeButton = new JButton("Add Batch Node");
         removeNodeButton = new JButton("Remove Node");
+        removeAllEdgesButton = new JButton("Remove All Edges");
         addEdgeButton = new JButton("Add Edge");
         removeEdgeButton = new JButton("Remove Edge");
         clearAllButton = new JButton("Clear All");
@@ -75,6 +77,7 @@ public class ToolbarPanel extends JToolBar {
         mainControlPanel.add(addNodeButton);
         mainControlPanel.add(addBatchNodeButton);
         mainControlPanel.add(removeNodeButton);
+        mainControlPanel.add(removeAllEdgesButton);
         mainControlPanel.add(addEdgeButton);
         mainControlPanel.add(removeEdgeButton);
         mainControlPanel.add(clearAllButton);
@@ -107,6 +110,7 @@ public class ToolbarPanel extends JToolBar {
         addNodeButton.addActionListener(e -> handleAddNode());
         addBatchNodeButton.addActionListener(e -> handleAddBatchNode());
         removeNodeButton.addActionListener(e -> handleRemoveNode());
+        removeAllEdgesButton.addActionListener(e -> handleClearAllEdges());
         addEdgeButton.addActionListener(e -> handleAddEdge());
         removeEdgeButton.addActionListener(e -> handleRemoveEdge());
         clearAllButton.addActionListener(e -> handleClearAll());
@@ -166,6 +170,29 @@ public class ToolbarPanel extends JToolBar {
             (JFrame) SwingUtilities.getWindowAncestor(this),
             service
         );
+    }
+
+
+    private void handleClearAllEdges() {
+        int result = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to clear all edges?",
+            "Clear Edges",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+    
+        if (result == JOptionPane.YES_OPTION) {
+            GraphResult<Boolean> clearResult = service.clearEdges();
+            if (!clearResult.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Failed to clear edges: " + clearResult.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
     }
 
     private void handleClearAll() {
