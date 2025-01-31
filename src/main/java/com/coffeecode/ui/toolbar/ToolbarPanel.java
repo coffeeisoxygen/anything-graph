@@ -96,6 +96,7 @@ public class ToolbarPanel extends JToolBar {
         selectorControlPanel.add(skipToEndButton);
         selectorControlPanel.add(new JLabel("Speed: "));
         selectorControlPanel.add(speedSlider);
+        selectorControlPanel.add(clearAllButton);
 
         // Add panels to toolbar
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
