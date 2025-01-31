@@ -2,8 +2,11 @@ package com.coffeecode.ui.service;
 
 import com.coffeecode.core.GraphResult;
 import com.coffeecode.event.core.GraphEvent;
+import com.coffeecode.model.LocationEdge;
 import com.coffeecode.model.LocationGraph;
 import com.coffeecode.model.LocationNode;
+import com.coffeecode.model.weight.EdgeWeightStrategy;
+import com.coffeecode.model.weight.WeightStrategies;
 import com.coffeecode.ui.config.GraphStreamConfig;
 import com.coffeecode.ui.panelgraph.GraphConverter;
 import com.coffeecode.ui.panelgraph.GraphPanel;
@@ -12,6 +15,8 @@ import java.util.List;
 
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.SingleGraph;
+import org.graphstream.stream.file.FileSourceGEXF.GEXFConstants.EdgeType;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -123,6 +128,57 @@ public class MainFrameService {
                 .filter(node -> node.getId().equals(id))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public GraphResult<Boolean> addEdge(String sourceId, String targetId, EdgeType type) {
+        try {
+            LocationNode source = findNodeById(sourceId);
+            LocationNode target = findNodeById(targetId);
+
+            if (source == null || target == null) {
+                return GraphResult.failure("Node not found");
+            }
+
+            EdgeWeightStrategy strategy = switch (type) {
+                case HAVERSINE ->
+                    WeightStrategies.HAVERSINE_DISTANCE;
+                case EUCLIDEAN ->
+                    WeightStrategies.EUCLIDEAN_DISTANCE;
+                case UNIT ->
+                    WeightStrategies.UNIT_WEIGHT;
+            };
+
+            double weight = strategy.calculateWeight(source, target);
+            boolean added = locationGraph.addEdge(new LocationEdge(source, target, weight));
+
+            return added
+                    ? GraphResult.success(true)
+                    : GraphResult.failure("Edge already exists");
+
+        } catch (Exception e) {
+            log.error("Failed to add edge: {}", e.getMessage());
+            return GraphResult.failure(e.getMessage());
+        }
+    }
+
+    public double calculateEdgeWeight(String sourceId, String targetId, EdgeType type) {
+        LocationNode source = findNodeById(sourceId);
+        LocationNode target = findNodeById(targetId);
+
+        if (source == null || target == null) {
+            throw new IllegalArgumentException("Node not found");
+        }
+
+        EdgeWeightStrategy strategy = switch (type) {
+            case HAVERSINE ->
+                WeightStrategies.HAVERSINE_DISTANCE;
+            case EUCLIDEAN ->
+                WeightStrategies.EUCLIDEAN_DISTANCE;
+            case UNIT ->
+                WeightStrategies.UNIT_WEIGHT;
+        };
+
+        return strategy.calculateWeight(source, target);
     }
 
     private void updateVisualization() {
