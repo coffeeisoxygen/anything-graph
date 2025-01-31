@@ -20,10 +20,10 @@ public class AddBatchNodePopup extends JDialog {
     private static final int RETRY_ATTEMPTS = 3;
     private static final long RATE_LIMIT_DELAY = 1000; // 1 second between requests
 
-    private final MainFrameService service;
+    private final transient MainFrameService service;
     private final DefaultTableModel tableModel;
     private final JTable table;
-    private final NominatimService nominatimService;
+    private final transient NominatimService nominatimService;
     private JLabel statusLabel;
 
     public AddBatchNodePopup(JFrame parent, MainFrameService service) {
@@ -63,12 +63,12 @@ public class AddBatchNodePopup extends JDialog {
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         infoPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JLabel infoLabel = new JLabel("<html><div style='width: 400px;'>" +
-                "1. Enter location names in the ID column<br>" +
-                "2. Click 'Get All Locations' to fetch coordinates automatically<br>" +
-                "3. Review the results and edit if needed<br>" +
-                "4. Click 'Add All' to add nodes to the graph" +
-                "</div></html>");
+        JLabel infoLabel = new JLabel("<html><div style='width: 400px;'>"
+                + "1. Enter location names in the ID column<br>"
+                + "2. Click 'Get All Locations' to fetch coordinates automatically<br>"
+                + "3. Review the results and edit if needed<br>"
+                + "4. Click 'Add All' to add nodes to the graph"
+                + "</div></html>");
         infoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         statusLabel = new JLabel("Ready");
@@ -221,6 +221,7 @@ public class AddBatchNodePopup extends JDialog {
 
     @Value
     private static class LocationSearchResult {
+
         int row;
         double[] coordinates;
         Exception error;
