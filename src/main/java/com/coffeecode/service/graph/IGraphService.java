@@ -1,7 +1,7 @@
 package com.coffeecode.service.graph;
 
-import com.coffeecode.model.LocationNode;
 import com.coffeecode.event.listener.GraphEventListener;
+import com.coffeecode.model.LocationNode;
 
 public interface IGraphService {
 
@@ -19,7 +19,5 @@ public interface IGraphService {
 
     boolean hasEdge(LocationNode source, LocationNode target);
 
-    void addListener(GraphEventListener listener);
 
-    void removeListener(GraphEventListener listener);
 }

@@ -5,6 +5,11 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 
+/**
+ * Represents a weighted edge between two LocationNodes. Immutable value object
+ * representing connection between nodes. Weight calculation is handled by
+ * LocationGraph.
+ */
 @Getter
 @EqualsAndHashCode(of = {"source", "destination"})
 public class LocationEdge {
@@ -18,7 +23,17 @@ public class LocationEdge {
     @Positive
     private final double weight;
 
-    public LocationEdge(@NonNull LocationNode source, @NonNull LocationNode destination, @Positive double weight) {
+    /**
+     * Creates edge with custom weight
+     *
+     * @param source Source node
+     * @param destination Destination node
+     * @param weight Edge weight (must be positive)
+     * @throws IllegalArgumentException if weight <= 0
+     */
+    public LocationEdge(@NonNull LocationNode source,
+            @NonNull LocationNode destination,
+            @Positive double weight) {
         if (weight <= 0) {
             throw new IllegalArgumentException("Weight must be positive");
         }
@@ -27,7 +42,9 @@ public class LocationEdge {
         this.weight = weight;
     }
 
-    public LocationEdge(@NonNull LocationNode source, @NonNull LocationNode destination) {
-        this(source, destination, 1.0);
+    @Override
+    public String toString() {
+        return String.format("Edge{%s -> %s, weight=%.2f}",
+                source.getId(), destination.getId(), weight);
     }
 }

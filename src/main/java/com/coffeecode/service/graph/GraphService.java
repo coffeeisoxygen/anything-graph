@@ -1,36 +1,30 @@
 package com.coffeecode.service.graph;
 
+import com.coffeecode.model.LocationEdge;
 import com.coffeecode.model.LocationGraph;
 import com.coffeecode.model.LocationNode;
-import com.coffeecode.model.LocationEdge;
 import com.coffeecode.event.core.GraphEvent;
 import com.coffeecode.event.core.GraphEvent.GraphEventType;
-import com.coffeecode.event.listener.GraphEventListener;
 import com.coffeecode.event.manager.EventManager;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 @Slf4j
 public class GraphService implements IGraphService {
 
     @Getter
     private final LocationGraph graph;
-    private final Set<GraphEventListener> listeners;
     private final EventManager eventManager;
 
-    public GraphService() {
+    public GraphService(EventManager eventManager) {
         this.graph = new LocationGraph();
-        this.listeners = new CopyOnWriteArraySet<>();
-        this.eventManager = new EventManager();
+        this.eventManager = eventManager;
     }
 
     @Override
     public void addNode(LocationNode node) {
         if (graph.addNode(node)) {
-            publishEvent(new GraphEvent(node, GraphEvent.GraphEventType.NODE_ADDED));
+            eventManager.publish(new GraphEvent(node, GraphEvent.GraphEventType.NODE_ADDED));
             log.debug("Node added: {}", node);
         }
     }
@@ -38,7 +32,7 @@ public class GraphService implements IGraphService {
     @Override
     public void removeNode(LocationNode node) {
         if (graph.removeNode(node)) {
-            publishEvent(new GraphEvent(node, GraphEvent.GraphEventType.NODE_REMOVED));
+            eventManager.publish(new GraphEvent(node, GraphEvent.GraphEventType.NODE_REMOVED));
             log.debug("Node removed: {}", node);
         }
     }
@@ -54,13 +48,13 @@ public class GraphService implements IGraphService {
     @Override
     public void removeEdge(LocationNode source, LocationNode target) {
         graph.getEdges(source).stream()
-            .filter(e -> e.getDestination().equals(target))
-            .findFirst()
-            .ifPresent(edge -> {
-                graph.removeEdge(edge);
-                eventManager.publish(new GraphEvent(edge, GraphEventType.EDGE_REMOVED));
-                log.debug("Edge removed: {} -> {}", source, target);
-            });
+                .filter(e -> e.getDestination().equals(target))
+                .findFirst()
+                .ifPresent(edge -> {
+                    graph.removeEdge(edge);
+                    eventManager.publish(new GraphEvent(edge, GraphEventType.EDGE_REMOVED));
+                    log.debug("Edge removed: {} -> {}", source, target);
+                });
     }
 
     @Override
@@ -78,23 +72,4 @@ public class GraphService implements IGraphService {
         return graph.hasEdge(source, target);
     }
 
-    @Override
-    public void addListener(GraphEventListener listener) {
-        listeners.add(listener);
-    }
-
-    @Override
-    public void removeListener(GraphEventListener listener) {
-        listeners.remove(listener);
-    }
-
-    private void publishEvent(GraphEvent event) {
-        listeners.forEach(listener -> {
-            try {
-                listener.onGraphEvent(event);
-            } catch (Exception e) {
-                log.error("Error notifying listener", e);
-            }
-        });
-    }
 }
