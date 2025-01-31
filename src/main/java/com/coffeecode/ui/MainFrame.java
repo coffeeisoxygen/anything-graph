@@ -6,7 +6,7 @@ import java.awt.Dimension;
 import javax.swing.JFrame;
 import javax.swing.JSplitPane;
 
-import com.coffeecode.listener.NodeChangeListener;
+import com.coffeecode.event.NodeChangeListener;
 import com.coffeecode.model.LocationNode;
 import com.coffeecode.ui.map.MapPanel;
 import com.coffeecode.ui.panelgraph.GraphPanel;

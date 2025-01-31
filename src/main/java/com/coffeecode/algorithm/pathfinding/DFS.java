@@ -9,9 +9,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import com.coffeecode.algorithm.GraphAlgorithm;
 import com.coffeecode.model.LocationGraph;
 import com.coffeecode.model.LocationNode;
+import com.coffeecode.service.algorithm.GraphAlgorithm;
 
 import lombok.extern.slf4j.Slf4j;
 

@@ -1,4 +1,4 @@
-package com.coffeecode.algorithm;
+package com.coffeecode.service.algorithm;
 
 import java.util.List;
 import java.util.function.Consumer;
