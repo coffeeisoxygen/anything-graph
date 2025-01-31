@@ -4,6 +4,9 @@ import com.coffeecode.core.GraphResult;
 import com.coffeecode.model.LocationNode;
 import com.coffeecode.ui.service.MainFrameService;
 import com.coffeecode.util.NominatimService;
+
+import lombok.Builder;
+import lombok.Data;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,6 +16,7 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -226,30 +230,7 @@ public class AddBatchNodePopup extends JDialog {
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         statusLabel.setText("Retrying selected locations...");
 
-        new SwingWorker<Void, LocationSearchResult>() {
-            @Override
-            protected Void doInBackground() {
-                for (int row : selectedRows) {
-                    String locationName = (String) tableModel.getValueAt(row, 0);
-                    if (locationName != null && !locationName.trim().isEmpty()) {
-                        searchLocationWithRetry(row, locationName);
-                        sleepBetweenRequests();
-                    }
-                }
-                return null;
-            }
-
-            @Override
-            protected void process(List<LocationSearchResult> results) {
-                results.forEach(AddBatchNodePopup.this::updateTableRow);
-            }
-
-            @Override
-            protected void done() {
-                setCursor(Cursor.getDefaultCursor());
-                statusLabel.setText("Retry completed");
-            }
-        }.execute();
+        new LocationSearchWorker(selectedRows).execute();
     }
 
     private void updateTableRow(LocationSearchResult result) {
@@ -303,12 +284,85 @@ public class AddBatchNodePopup extends JDialog {
         }
     }
 
-    @Value
+    // Inner class for the search worker
+    private class LocationSearchWorker extends SwingWorker<Void, LocationSearchResult> {
+
+        private final int[] selectedRows;
+
+        LocationSearchWorker(int[] selectedRows) {
+            this.selectedRows = selectedRows;
+        }
+
+        @Override
+        protected Void doInBackground() {
+            for (int row : selectedRows) {
+                String locationName = (String) tableModel.getValueAt(row, 0);
+                if (locationName != null && !locationName.trim().isEmpty()) {
+                    searchLocationWithRetry(row, locationName);
+                    sleepBetweenRequests();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void process(List<LocationSearchResult> results) {
+            results.forEach(AddBatchNodePopup.this::updateTableRow);
+        }
+
+        @Override
+        protected void done() {
+            setCursor(Cursor.getDefaultCursor());
+            statusLabel.setText("Retry completed");
+        }
+
+        private void searchLocationWithRetry(int row, String locationName) {
+            Exception lastError = null;
+            for (int attempt = 0; attempt < RETRY_ATTEMPTS; attempt++) {
+                try {
+                    double[] coords = nominatimService.findLongLat(locationName);
+                    publish(new LocationSearchResult(row, coords, null));
+                    return;
+                } catch (IOException e) {
+                    lastError = e;
+                    log.warn("Network error on attempt {} for {}: {}",
+                            attempt + 1, locationName, e.getMessage());
+                    sleepBetweenAttempts(attempt);
+                } catch (IllegalArgumentException e) {
+                    lastError = e;
+                    log.warn("Invalid location on attempt {} for {}: {}",
+                            attempt + 1, locationName, e.getMessage());
+                    sleepBetweenAttempts(attempt);
+                }
+            }
+            publish(new LocationSearchResult(row, null, lastError));
+        }
+
+        private void sleepBetweenRequests() {
+            try {
+                Thread.sleep(RATE_LIMIT_DELAY);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        private void sleepBetweenAttempts(int attempt) {
+            try {
+                // Exponential backoff
+                Thread.sleep(RATE_LIMIT_DELAY * (long) Math.pow(2, attempt));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    @Data
+    @Builder
     private static class LocationSearchResult {
 
-        int row;
-        double[] coordinates;
-        Exception error;
+        private final int row;
+        private final double[] coordinates;
+        private final Exception error;
     }
 
     public static void showPopup(JFrame parent, MainFrameService service) {
