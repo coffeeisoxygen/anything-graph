@@ -136,6 +136,21 @@ public class AddBatchNodePopup extends JDialog {
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         statusLabel.setText("Fetching locations...");
 
+        // Collect all non-empty IDs first
+        List<Integer> rowsToProcess = new ArrayList<>();
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            String locationName = (String) tableModel.getValueAt(i, 0);
+            if (locationName != null && !locationName.trim().isEmpty()) {
+                rowsToProcess.add(i);
+            }
+        }
+
+        if (rowsToProcess.isEmpty()) {
+            setCursor(Cursor.getDefaultCursor());
+            statusLabel.setText("No locations to process");
+            return;
+        }
+
         new SwingWorker<Void, LocationSearchResult>() {
             @Override
             protected Void doInBackground() {
