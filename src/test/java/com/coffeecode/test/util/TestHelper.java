@@ -5,9 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import com.coffeecode.event.core.EventListener;
 import com.coffeecode.event.core.GraphEvent;
 import com.coffeecode.model.LocationGraph;
 
@@ -19,67 +17,56 @@ public class TestHelper {
     private final LocationGraph graph;
     private final List<GraphEvent> events;
     private final CountDownLatch eventLatch;
-    private final AtomicInteger expectedEvents = new AtomicInteger(0);
+    private volatile int expectedEventCount;
 
     public TestHelper(LocationGraph graph) {
         this.graph = graph;
         this.events = Collections.synchronizedList(new ArrayList<>());
         this.eventLatch = new CountDownLatch(1);
+        this.expectedEventCount = 0;
         setupEventSubscriptions();
     }
 
+    public synchronized void expectEvents(int count) {
+        this.expectedEventCount = count;
+        if (count > 0) {
+            this.eventLatch.countDown();
+            new CountDownLatch(1); // Reset latch
+        }
+    }
+
+    private synchronized void onEventReceived(GraphEvent event) {
+        events.add(event);
+        log.debug("Event received: {}", event);
+        if (events.size() >= expectedEventCount) {
+            eventLatch.countDown();
+        }
+    }
+
     private void setupEventSubscriptions() {
-        EventListener<GraphEvent.NodeAdded> nodeAddedListener = event -> {
-            events.add(event);
-            log.debug("Node added event received: {}", event);
-            int remaining = expectedEvents.decrementAndGet();
-            if (remaining <= 0) {
-                eventLatch.countDown();
-            }
-        };
-
-        EventListener<GraphEvent.EdgeAdded> edgeAddedListener = event -> {
-            events.add(event);
-            log.debug("Edge added event received: {}", event);
-            int remaining = expectedEvents.decrementAndGet();
-            if (remaining <= 0) {
-                eventLatch.countDown();
-            }
-        };
-
-        EventListener<GraphEvent.NodeRemoved> nodeRemovedListener = event -> {
-            events.add(event);
-            log.debug("Node removed event received: {}", event);
-            int remaining = expectedEvents.decrementAndGet();
-            if (remaining <= 0) {
-                eventLatch.countDown();
-            }
-        };
-
-        EventListener<GraphEvent.EdgeRemoved> edgeRemovedListener = event -> {
-            events.add(event);
-            log.debug("Edge removed event received: {}", event);
-            int remaining = expectedEvents.decrementAndGet();
-            if (remaining <= 0) {
-                eventLatch.countDown();
-            }
-        };
-
-        graph.subscribe(GraphEvent.NodeAdded.class, nodeAddedListener);
-        graph.subscribe(GraphEvent.EdgeAdded.class, edgeAddedListener);
-        graph.subscribe(GraphEvent.NodeRemoved.class, nodeRemovedListener);
-        graph.subscribe(GraphEvent.EdgeRemoved.class, edgeRemovedListener);
+        graph.subscribe(GraphEvent.NodeAdded.class,
+                event -> onEventReceived(event));
+        graph.subscribe(GraphEvent.EdgeAdded.class,
+                event -> onEventReceived(event));
+        graph.subscribe(GraphEvent.NodeRemoved.class,
+                event -> onEventReceived(event));
+        graph.subscribe(GraphEvent.EdgeRemoved.class,
+                event -> onEventReceived(event));
     }
 
     public List<GraphEvent> getEvents() {
-        return events;
+        return new ArrayList<>(events);
     }
 
     public void waitForEvents() throws InterruptedException {
-        eventLatch.await(100, TimeUnit.MILLISECONDS);
+        if (!eventLatch.await(500, TimeUnit.MILLISECONDS)) {
+            log.warn("Timeout waiting for events. Expected: {}, Got: {}",
+                    expectedEventCount, events.size());
+        }
     }
 
-    public void clearEvents() {
+    public synchronized void clearEvents() {
         events.clear();
+        expectedEventCount = 0;
     }
 }

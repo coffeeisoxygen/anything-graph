@@ -11,11 +11,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import com.coffeecode.event.core.GraphEvent;
 import com.coffeecode.test.util.TestHelper;
 
 @DisplayName("LocationGraph Test Suite")
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
 class LocationGraphTest {
 
     private LocationGraph graph;
@@ -24,7 +26,7 @@ class LocationGraphTest {
     private TestHelper testHelper;
 
     @BeforeEach
-    void setUp() throws InterruptedException {
+    void setUp() {
         graph = new LocationGraph();
         nodeA = new LocationNode("A", 0, 0);
         nodeB = new LocationNode("B", 1, 1);
@@ -32,7 +34,6 @@ class LocationGraphTest {
         edgeAB = new LocationEdge(nodeA, nodeB, 1.0);
         edgeBC = new LocationEdge(nodeB, nodeC, 2.0);
         testHelper = new TestHelper(graph);
-        testHelper.waitForEvents();
     }
 
     @Nested
@@ -42,6 +43,7 @@ class LocationGraphTest {
         @Test
         @DisplayName("Should handle basic node operations")
         void basicOperations() throws InterruptedException {
+            testHelper.expectEvents(1);
             assertThat(graph.addNode(nodeA)).isTrue();
             testHelper.waitForEvents();
 
@@ -201,6 +203,7 @@ class LocationGraphTest {
         @Test
         @DisplayName("Should handle large graphs efficiently")
         void memoryUsage() {
+            System.gc(); // Force GC before test
             Runtime runtime = Runtime.getRuntime();
             long initialMemory = runtime.totalMemory() - runtime.freeMemory();
 
@@ -217,18 +220,22 @@ class LocationGraphTest {
                 }
             }
 
-            long memoryUsed = (runtime.totalMemory() - runtime.freeMemory()) - initialMemory;
-            System.out.printf("Memory used: %.2f MB%n", memoryUsed / (1024.0 * 1024.0));
-            assertThat(memoryUsed).isPositive();
+            System.gc(); // Force GC after test
+            long finalMemory = runtime.totalMemory() - runtime.freeMemory();
+            long memoryUsed = finalMemory - initialMemory;
+
+            assertThat(memoryUsed)
+                    .as("Memory usage should be positive")
+                    .isGreaterThan(0L);
         }
     }
 
     @AfterEach
     void tearDown() throws InterruptedException {
-        testHelper.waitForEvents();
-        graph.clear();
-        testHelper.waitForEvents();
-        graph.shutdown();
-        testHelper.clearEvents();
+        if (graph != null) {
+            graph.clear();
+            testHelper.waitForEvents();
+            graph.shutdown();
+        }
     }
 }
