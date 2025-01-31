@@ -2,10 +2,19 @@ package com.coffeecode.ui.toolbar;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import javax.swing.*;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 
 import com.coffeecode.ui.service.MainFrameService;
-import com.coffeecode.ui.toolbar.map.AddNodeFromMap;
 
 import lombok.Getter;
 
@@ -17,7 +26,6 @@ public class ToolbarPanel extends JToolBar {
     private final JButton stopButton;
     private final JSlider speedSlider;
     private final JButton addNodeButton;
-    private final JButton addNodeFromMapButton;
     private final JButton removeNodeButton;
     private final JButton addEdgeButton;
     private final JButton removeEdgeButton;
@@ -27,7 +35,7 @@ public class ToolbarPanel extends JToolBar {
     private final JButton nextStepButton;
     private final JButton prevStepButton;
     private final JButton skipToEndButton;
-    private final MainFrameService service;
+    private final transient MainFrameService service;
 
     public ToolbarPanel(MainFrameService service) {
         this.service = service;
@@ -38,7 +46,6 @@ public class ToolbarPanel extends JToolBar {
         algorithmSelector = new JComboBox<>(new String[]{"BFS", "DFS", "Dijkstra", "A*"});
         speedSlider = new JSlider(0, 100, 50);
         addNodeButton = new JButton("Add Node");
-        addNodeFromMapButton = new JButton("Add Node from Map");
         removeNodeButton = new JButton("Remove Node");
         addEdgeButton = new JButton("Add Edge");
         removeEdgeButton = new JButton("Remove Edge");
@@ -63,7 +70,6 @@ public class ToolbarPanel extends JToolBar {
         mainControlPanel.add(algorithmType);
         mainControlPanel.add(algorithmSelector);
         mainControlPanel.add(addNodeButton);
-        mainControlPanel.add(addNodeFromMapButton);
         mainControlPanel.add(removeNodeButton);
         mainControlPanel.add(addEdgeButton);
         mainControlPanel.add(removeEdgeButton);
@@ -95,7 +101,6 @@ public class ToolbarPanel extends JToolBar {
 
     private void setupButtonActions() {
         addNodeButton.addActionListener(e -> handleAddNode());
-        addNodeFromMapButton.addActionListener(e -> handleAddNodeFromMap());
         removeNodeButton.addActionListener(e -> handleRemoveNode());
         addEdgeButton.addActionListener(e -> handleAddEdge());
         removeEdgeButton.addActionListener(e -> handleRemoveEdge());
@@ -111,13 +116,6 @@ public class ToolbarPanel extends JToolBar {
     // Placeholder methods for button actions
     private void handleAddNode() {
         AddNodePopup.showPopup(
-                (JFrame) SwingUtilities.getWindowAncestor(this),
-                service
-        );
-    }
-
-    private void handleAddNodeFromMap() {
-        AddNodeFromMap.showPopup(
                 (JFrame) SwingUtilities.getWindowAncestor(this),
                 service
         );

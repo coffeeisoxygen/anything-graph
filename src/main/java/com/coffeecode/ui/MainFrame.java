@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.WindowConstants;
 
 import com.coffeecode.ui.panelgraph.GraphPanel;
 import com.coffeecode.ui.service.MainFrameService;
@@ -57,8 +58,8 @@ public class MainFrame extends JFrame {
     }
 
     private void setupWindowProperties() {
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setPreferredSize(new Dimension(600, 600));
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setPreferredSize(new Dimension(1200, 600));
         pack();
         setLocationRelativeTo(null);
     }

@@ -1,17 +1,26 @@
 package com.coffeecode.ui.toolbar;
 
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import com.coffeecode.ui.service.MainFrameService;
 import com.coffeecode.ui.validation.LocationValidator;
 import com.coffeecode.util.NominatimService;
 
-import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
-
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -125,36 +134,11 @@ public class AddNodePopup extends JDialog {
         }
     }
 
-    private void handleGetFromMap() {
-        if (longitudeField.getText().isEmpty() || latitudeField.getText().isEmpty()) {
-            showError("Please enter coordinates");
-            return;
+        private void handleGetFromMap() {
+            showError("This feature is still in development phase");
         }
 
-        try {
-            double longitude = Double.parseDouble(longitudeField.getText());
-            double latitude = Double.parseDouble(latitudeField.getText());
-
-            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            String locationName = nominatimService.findName(longitude, latitude);
-
-            if (!"Unknown Location".equals(locationName)) {
-                nameField.setText(locationName);
-                log.debug("Found name for coordinates: {}", locationName);
-            } else {
-                showError("Location not found for these coordinates");
-            }
-        } catch (NumberFormatException ex) {
-            showError("Please enter valid coordinates");
-        } catch (Exception ex) {
-            log.error("Error getting location name", ex);
-            showError("Error getting location name: " + ex.getMessage());
-        } finally {
-            setCursor(Cursor.getDefaultCursor());
-        }
-    }
-
-    private void handleAddNode() {
+        private void handleAddNode() {
         String name = nameField.getText().trim();
         if (name.isEmpty()) {
             showError("Node name cannot be empty");
@@ -176,7 +160,7 @@ public class AddNodePopup extends JDialog {
             boolean added = service.addNode(name, latitude, longitude);
             if (added) {
                 log.debug("Node added successfully: {}", name);
-                dispose();
+                showSuccess("Node added successfully");
             } else {
                 showError("Node with this name already exists");
             }
@@ -194,6 +178,13 @@ public class AddNodePopup extends JDialog {
                 message,
                 "Error",
                 JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showSuccess(String message) {
+        JOptionPane.showMessageDialog(this,
+                message,
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
     public static void showPopup(JFrame parent, MainFrameService service) {

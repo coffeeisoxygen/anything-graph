@@ -1,4 +1,4 @@
-package com.coffeecode.ui.exception;
+package com.coffeecode.ui.panelgraph;
 
 public class GraphPanelInitializationException extends RuntimeException {
 
