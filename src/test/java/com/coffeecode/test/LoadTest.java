@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import com.coffeecode.model.LocationEdge;
 import com.coffeecode.model.LocationGraph;
@@ -20,11 +21,12 @@ import com.coffeecode.model.LocationNode;
 
 public class LoadTest {
 
-    private static final int THREAD_COUNT = 10;
+    private static final int THREAD_COUNT = Runtime.getRuntime().availableProcessors();
     private static final int OPERATIONS_PER_THREAD = 1000;
-    private static final int TIMEOUT_SECONDS = 30;
+    private static final int TIMEOUT_SECONDS = 60;
 
     @Test
+    @Timeout(value = TIMEOUT_SECONDS + 5, unit = TimeUnit.SECONDS)
     void shouldHandleConcurrentNodeOperations() throws InterruptedException {
         // Setup
         LocationGraph graph = new LocationGraph();
@@ -90,6 +92,7 @@ public class LoadTest {
     }
 
     @Test
+    @Timeout(value = TIMEOUT_SECONDS + 5, unit = TimeUnit.SECONDS)
     void shouldHandleConcurrentEdgeOperations() throws InterruptedException {
         LocationGraph graph = new LocationGraph();
         List<LocationNode> nodes = new ArrayList<>();

@@ -1,7 +1,14 @@
 package com.coffeecode.event.core;
 
-@FunctionalInterface
-public interface EventListener {
+import java.util.function.Consumer;
 
-    void onEvent(Object event);
+@FunctionalInterface
+public interface EventListener<T> extends Consumer<T> {
+
+    void onEvent(T event);
+
+    @Override
+    default void accept(T event) {
+        onEvent(event);
+    }
 }

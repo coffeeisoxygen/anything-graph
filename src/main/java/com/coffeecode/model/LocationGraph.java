@@ -204,15 +204,15 @@ public class LocationGraph {
     /**
      * Subscribe to specific event type
      */
-    public <T> void subscribe(Class<T> eventType, EventListener listener) {
+    public <T> void subscribe(Class<T> eventType, EventListener<T> listener) {
         eventManager.subscribe(eventType, listener);
         log.debug("Subscribed {} to {}", listener, eventType.getSimpleName());
     }
 
-    /**
-     * Unsubscribe from specific event type
-     */
-    public <T> void unsubscribe(Class<T> eventType, EventListener listener) {
+    // /**
+    //  * Unsubscribe from specific event type
+    //  */
+    public <T> void unsubscribe(Class<T> eventType, EventListener<T> listener) {
         eventManager.unsubscribe(eventType, listener);
         log.debug("Unsubscribed {} from {}", listener, eventType.getSimpleName());
     }

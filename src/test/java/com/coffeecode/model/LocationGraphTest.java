@@ -1,13 +1,9 @@
 package com.coffeecode.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.AfterEach;
@@ -17,53 +13,55 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.coffeecode.event.core.GraphEvent;
+import com.coffeecode.test.util.TestHelper;
 
 @DisplayName("LocationGraph Test Suite")
 class LocationGraphTest {
-
-    private static final int EVENT_WAIT_MS = 100;
     private LocationGraph graph;
     private LocationNode nodeA, nodeB, nodeC;
     private LocationEdge edgeAB, edgeBC;
-    private List<Object> receivedEvents;
+    private TestHelper testHelper;
 
     @BeforeEach
     void setUp() {
         graph = new LocationGraph();
+        testHelper = new TestHelper(graph);
+        
         nodeA = new LocationNode("A", 0, 0);
         nodeB = new LocationNode("B", 1, 1);
         nodeC = new LocationNode("C", 2, 2);
         edgeAB = new LocationEdge(nodeA, nodeB, 1.0);
         edgeBC = new LocationEdge(nodeB, nodeC, 2.0);
-        receivedEvents = Collections.synchronizedList(new ArrayList<>());
-
-        // Subscribe to events
-        graph.subscribe(GraphEvent.NodeAdded.class, event -> receivedEvents.add(event));
-        graph.subscribe(GraphEvent.EdgeAdded.class, event -> receivedEvents.add(event));
-        graph.subscribe(GraphEvent.NodeRemoved.class, event -> receivedEvents.add(event));
-        graph.subscribe(GraphEvent.EdgeRemoved.class, event -> receivedEvents.add(event));
     }
 
     @Nested
     @DisplayName("Node Operations")
     class NodeOperations {
-
         @Test
         @DisplayName("Should handle basic node operations")
         void basicOperations() throws InterruptedException {
             assertThat(graph.addNode(nodeA)).isTrue();
-            waitForEvents();
-
+            testHelper.waitForEvents();
+            
             assertThat(graph.hasNode(nodeA)).isTrue();
             assertThat(graph.getNodeCount()).isEqualTo(1);
             assertThat(graph.getNodes()).contains(nodeA);
+            
+            assertThat(testHelper.getEvents())
+                .hasSize(1)
+                .hasOnlyElementsOfType(GraphEvent.NodeAdded.class);
 
             assertThat(graph.addNode(nodeA)).isFalse(); // Duplicate
+            testHelper.waitForEvents();
+            
             assertThat(graph.removeNode(nodeA)).isTrue();
-            waitForEvents();
-
+            testHelper.waitForEvents();
+            
             assertThat(graph.hasNode(nodeA)).isFalse();
-            assertThat(receivedEvents).hasSize(2);
+            assertThat(testHelper.getEvents())
+                .hasSize(2)
+                .element(1)
+                .isInstanceOf(GraphEvent.NodeRemoved.class);
         }
 
         @Test
@@ -77,25 +75,27 @@ class LocationGraphTest {
     }
 
     @Nested
-    @DisplayName("Edge Operations")
+    @DisplayName("Edge Operations") 
     class EdgeOperations {
+        @BeforeEach
+        void setupNodes() throws InterruptedException {
+            graph.addNode(nodeA);
+            graph.addNode(nodeB);
+            testHelper.waitForEvents();
+        }
 
         @Test
         @DisplayName("Should handle basic edge operations")
         void basicOperations() throws InterruptedException {
-            graph.addNode(nodeA);
-            graph.addNode(nodeB);
-            waitForEvents();
-
             assertThat(graph.addEdge(edgeAB)).isTrue();
-            waitForEvents();
+            testHelper.waitForEvents();
 
             assertThat(graph.getEdges(nodeA)).contains(edgeAB);
             assertThat(graph.getEdgeCount()).isEqualTo(1);
 
             assertThat(graph.addEdge(edgeAB)).isFalse(); // Duplicate
             assertThat(graph.removeEdge(edgeAB)).isTrue();
-            waitForEvents();
+            testHelper.waitForEvents();
 
             assertThat(graph.getEdges(nodeA)).isEmpty();
         }
@@ -179,7 +179,7 @@ class LocationGraphTest {
             graph.addEdge(edgeAB);
             graph.removeNode(nodeA);
 
-            assertThat(receivedEvents)
+            assertThat(testHelper.getEvents())
                     .hasSize(4)
                     .hasOnlyElementsOfTypes(
                             GraphEvent.NodeAdded.class,
@@ -218,17 +218,12 @@ class LocationGraphTest {
         }
     }
 
-    private void waitForEvents() throws InterruptedException {
-        TimeUnit.MILLISECONDS.sleep(EVENT_WAIT_MS);
-    }
-
     @AfterEach
     void tearDown() throws InterruptedException {
-        waitForEvents();
+        testHelper.waitForEvents();
         graph.clear();
-        waitForEvents();
+        testHelper.waitForEvents();
         graph.shutdown();
-        receivedEvents.clear();
-        waitForEvents();
+        testHelper.clearEvents();
     }
 }
