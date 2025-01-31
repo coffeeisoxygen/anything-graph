@@ -1,11 +1,16 @@
 package com.coffeecode.service;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.coffeecode.algorithm.GraphAlgorithm;
 import com.coffeecode.algorithm.pathfinding.BFS;
@@ -26,6 +31,7 @@ public class AlgorithmService {
     private final LocationGraph graph;
     private final Map<String, GraphAlgorithm> algorithms;
     private final List<NodeChangeListener> listeners;
+    private final ExecutorService executor;
 
     @Getter
     private LocationNode startNode;
@@ -37,15 +43,24 @@ public class AlgorithmService {
 
     public AlgorithmService() {
         this.graph = new LocationGraph();
-        this.algorithms = new HashMap<>();
-        this.listeners = new ArrayList<>();
-        initializeAlgorithms();
+        this.algorithms = new ConcurrentHashMap<>();
+        this.listeners = new CopyOnWriteArrayList<>();
+        this.executor = Executors.newSingleThreadExecutor();
+        registerAlgorithms();
     }
 
-    private void initializeAlgorithms() {
+    private void registerAlgorithms() {
         algorithms.put("BFS", new BFS());
         algorithms.put("DFS", new DFS());
         // Will add Dijkstra and A* later
+    }
+
+    public void registerAlgorithm(String name, GraphAlgorithm algorithm) {
+        algorithms.put(name, algorithm);
+    }
+
+    public Set<String> getAvailableAlgorithms() {
+        return new HashSet<>(algorithms.keySet());
     }
 
     public void setStartNode(LocationNode node) {

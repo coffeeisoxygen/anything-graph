@@ -3,9 +3,9 @@ package com.coffeecode.event;
 public enum NodeEventType {
     ADDED,
     REMOVED,
-    SELECTED,
+    VISITED,
     START_SET,
     END_SET,
-    VISITED,
-    PROCESSING
+    PROCESSING,
+    PATH_FOUND
 }
