@@ -27,6 +27,7 @@ public class ToolbarPanel extends JToolBar {
     private final JButton stopButton;
     private final JSlider speedSlider;
     private final JButton addNodeButton;
+    private final JButton addBatchNodeButton;
     private final JButton removeNodeButton;
     private final JButton addEdgeButton;
     private final JButton removeEdgeButton;
@@ -47,6 +48,7 @@ public class ToolbarPanel extends JToolBar {
         algorithmSelector = new JComboBox<>(new String[]{"BFS", "DFS", "Dijkstra", "A*"});
         speedSlider = new JSlider(0, 100, 50);
         addNodeButton = new JButton("Add Node");
+        addBatchNodeButton = new JButton("Add Batch Node");
         removeNodeButton = new JButton("Remove Node");
         addEdgeButton = new JButton("Add Edge");
         removeEdgeButton = new JButton("Remove Edge");
@@ -71,6 +73,7 @@ public class ToolbarPanel extends JToolBar {
         mainControlPanel.add(algorithmType);
         mainControlPanel.add(algorithmSelector);
         mainControlPanel.add(addNodeButton);
+        mainControlPanel.add(addBatchNodeButton);
         mainControlPanel.add(removeNodeButton);
         mainControlPanel.add(addEdgeButton);
         mainControlPanel.add(removeEdgeButton);
@@ -102,6 +105,7 @@ public class ToolbarPanel extends JToolBar {
 
     private void setupButtonActions() {
         addNodeButton.addActionListener(e -> handleAddNode());
+        addBatchNodeButton.addActionListener(e -> handleAddBatchNode());
         removeNodeButton.addActionListener(e -> handleRemoveNode());
         addEdgeButton.addActionListener(e -> handleAddEdge());
         removeEdgeButton.addActionListener(e -> handleRemoveEdge());
@@ -119,6 +123,13 @@ public class ToolbarPanel extends JToolBar {
         AddNodePopup.showPopup(
                 (JFrame) SwingUtilities.getWindowAncestor(this),
                 service
+        );
+    }
+
+    private void handleAddBatchNode() {
+        AddBatchNodePopup.showPopup(
+            (JFrame) SwingUtilities.getWindowAncestor(this),
+            service
         );
     }
 
