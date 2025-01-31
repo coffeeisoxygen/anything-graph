@@ -2,71 +2,80 @@ package com.coffeecode.algorithm.pathfinding;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
-import java.util.function.Consumer;
 
+import com.coffeecode.event.state.GraphState;
+import com.coffeecode.model.LocationEdge;
 import com.coffeecode.model.LocationGraph;
 import com.coffeecode.model.LocationNode;
-import com.coffeecode.service.algorithm.GraphAlgorithm;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class BFS implements GraphAlgorithm {
+public class BFS implements PathFindingAlgorithm {
 
     @Override
-    public List<LocationNode> execute(LocationGraph graph, LocationNode start, LocationNode end, Consumer<LocationNode> onVisit) {
-        if (!graph.containsNode(start)) {
-            throw new IllegalArgumentException("Start node not in graph");
-        }
+    public List<LocationNode> execute(LocationGraph graph,
+            LocationNode start,
+            LocationNode end,
+            GraphState state) {
+        validateInput(graph, start, end);
+        state.clear();
 
         Queue<LocationNode> queue = new LinkedList<>();
-        Set<LocationNode> visited = new HashSet<>();
-        Map<LocationNode, LocationNode> parentMap = new HashMap<>();
-
         queue.offer(start);
-        visited.add(start);
+        state.markProcessing(start);
 
         while (!queue.isEmpty()) {
             LocationNode current = queue.poll();
-            onVisit.accept(current); // Trigger visualization
+            state.markVisited(current);
 
-            if (end != null && current.equals(end)) {
-                return reconstructPath(parentMap, start, end);
+            if (current.equals(end)) {
+                return reconstructPath(state, start, end);
             }
 
-            for (LocationNode neighbor : graph.getNeighbors(current)) {
-                if (!visited.contains(neighbor)) {
-                    visited.add(neighbor);
-                    parentMap.put(neighbor, current);
+            for (LocationEdge edge : graph.getEdges(current)) {
+                LocationNode neighbor = edge.getDestination();
+                if (!state.isVisited(neighbor) && !state.isProcessing(neighbor)) {
                     queue.offer(neighbor);
+                    state.updateParent(neighbor, current);
+                    state.markProcessing(neighbor);
+                    state.markProcessing(edge);
                 }
             }
         }
 
-        return end == null ? new ArrayList<>(visited) : Collections.emptyList();
+        return Collections.emptyList();
     }
 
-    private List<LocationNode> reconstructPath(Map<LocationNode, LocationNode> parentMap, LocationNode start, LocationNode end) {
+    private List<LocationNode> reconstructPath(GraphState state,
+            LocationNode start,
+            LocationNode end) {
         List<LocationNode> path = new ArrayList<>();
         LocationNode current = end;
 
         while (current != null) {
             path.add(0, current);
-            current = parentMap.get(current);
+            current = state.getParentNode(current);
         }
 
         return path;
     }
 
-    
+    @Override
     public String getName() {
         return "Breadth-First Search";
+    }
+
+    @Override
+    public boolean isComplete() {
+        return true;
+    }
+
+    @Override
+    public boolean isGuaranteedShortest() {
+        return true; // BFS guarantees shortest path in unweighted graphs
     }
 }

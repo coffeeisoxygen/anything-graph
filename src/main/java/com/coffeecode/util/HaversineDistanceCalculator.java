@@ -18,9 +18,6 @@ public final class HaversineDistanceCalculator {
      */
     public static double calculateDistance(@NotNull LocationNode source,
             @NotNull LocationNode destination) {
-        if (source == null || destination == null) {
-            throw new IllegalArgumentException("Locations cannot be null");
-        }
 
         double lat1 = Math.toRadians(source.getLatitude());
         double lon1 = Math.toRadians(source.getLongitude());

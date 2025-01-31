@@ -1,4 +1,4 @@
-package com.coffeecode.event;
+package com.coffeecode.event.core;
 
 import com.coffeecode.model.LocationEdge;
 import com.coffeecode.model.LocationNode;

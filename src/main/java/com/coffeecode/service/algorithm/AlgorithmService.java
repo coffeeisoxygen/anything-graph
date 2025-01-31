@@ -1,6 +1,7 @@
 package com.coffeecode.service.algorithm;
 
 import com.coffeecode.model.*;
+import com.coffeecode.algorithm.core.GraphAlgorithm;
 import com.coffeecode.algorithm.pathfinding.BFS;
 import com.coffeecode.algorithm.pathfinding.DFS;
 import com.coffeecode.event.core.*;

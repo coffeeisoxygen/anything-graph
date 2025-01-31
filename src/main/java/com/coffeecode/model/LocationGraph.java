@@ -6,9 +6,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.coffeecode.event.GraphEvent;
-import com.coffeecode.event.GraphEventListener;
-import com.coffeecode.event.GraphEventPublisher;
+import com.coffeecode.event.core.EventListener;
+import com.coffeecode.event.core.EventManager;
+import com.coffeecode.event.core.GraphEvent;
+import com.coffeecode.event.service.ServiceLocator;
 import com.coffeecode.model.weight.EdgeWeightStrategy;
 import com.coffeecode.model.weight.WeightStrategies;
 
@@ -26,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class LocationGraph {
 
     private final Map<LocationNode, Set<LocationEdge>> adjacencyList;
-    private final GraphEventPublisher eventPublisher;
+    private final EventManager eventManager;
     private final EdgeWeightStrategy weightStrategy;
 
     public LocationGraph() {
@@ -35,7 +36,7 @@ public class LocationGraph {
 
     public LocationGraph(EdgeWeightStrategy weightStrategy) {
         this.adjacencyList = new ConcurrentHashMap<>();
-        this.eventPublisher = new GraphEventPublisher();
+        this.eventManager = ServiceLocator.getInstance().getEventManager();
         this.weightStrategy = weightStrategy;
     }
 
@@ -48,7 +49,7 @@ public class LocationGraph {
         boolean added = adjacencyList.putIfAbsent(node,
                 Collections.newSetFromMap(new ConcurrentHashMap<>())) == null;
         if (added) {
-            eventPublisher.publish(new GraphEvent.NodeAdded(node));
+            eventManager.publish(new GraphEvent.NodeAdded(node));
             log.info("Node added successfully: {}", node);
         } else {
             log.warn("Failed to add node (already exists): {}", node);
@@ -74,7 +75,7 @@ public class LocationGraph {
 
         boolean added = adjacencyList.get(edge.getSource()).add(edge);
         if (added) {
-            eventPublisher.publish(new GraphEvent.EdgeAdded(edge));
+            eventManager.publish(new GraphEvent.EdgeAdded(edge));
             log.info("Edge added successfully: {}", edge);
         } else {
             log.warn("Failed to add edge (already exists): {}", edge);
@@ -98,7 +99,7 @@ public class LocationGraph {
         // Remove node and publish event
         Set<LocationEdge> removed = adjacencyList.remove(node);
         if (removed != null) {
-            eventPublisher.publish(new GraphEvent.NodeRemoved(node));
+            eventManager.publish(new GraphEvent.NodeRemoved(node));
             log.info("Node removed successfully: {}", node);
             return true;
         }
@@ -119,7 +120,7 @@ public class LocationGraph {
         }
         boolean removed = edges.remove(edge);
         if (removed) {
-            eventPublisher.publish(new GraphEvent.EdgeRemoved(edge));
+            eventManager.publish(new GraphEvent.EdgeRemoved(edge));
             log.info("Edge removed successfully: {}", edge);
         } else {
             log.warn("Failed to remove edge (not found): {}", edge);
@@ -196,12 +197,32 @@ public class LocationGraph {
      */
     public void clear() {
         adjacencyList.clear();
-        eventPublisher.publish(GraphEvent.GraphCleared.INSTANCE);
+        eventManager.publish(GraphEvent.GraphCleared.INSTANCE);
         log.info("Graph cleared successfully");
     }
 
-    public void subscribeToEvents(GraphEventListener listener) {
-        eventPublisher.subscribe(listener);
+    /**
+     * Subscribe to specific event type
+     */
+    public <T> void subscribe(Class<T> eventType, EventListener listener) {
+        eventManager.subscribe(eventType, listener);
+        log.debug("Subscribed {} to {}", listener, eventType.getSimpleName());
+    }
+
+    /**
+     * Unsubscribe from specific event type
+     */
+    public <T> void unsubscribe(Class<T> eventType, EventListener listener) {
+        eventManager.unsubscribe(eventType, listener);
+        log.debug("Unsubscribed {} from {}", listener, eventType.getSimpleName());
+    }
+
+    /**
+     * Shutdown event manager
+     */
+    public void shutdown() {
+        eventManager.shutdown();
+        log.info("Graph event manager shutdown");
     }
 
     // development Puproses only 
@@ -210,15 +231,18 @@ public class LocationGraph {
     // ? [ ] MARK Thread , Locks , Concurrency , Parallelism , Asynchronous , Synchronous , Blocking , Non-Blocking , Deadlocks , Starvation
     // ? [ ] MARK: - development Puproses only
     // ! [ ] MARK: - development Puproses only
-    public void unsubscribeToEvents(GraphEventListener listener) {
-        eventPublisher.unsubscribe(listener);
-    }
-
-    public void shutdownEventPublisher() {
-        eventPublisher.shutdown();
-    }
-
     // print adjacency list
+    /**
+     * Print graph structure (for debugging)
+     */
+    public void printGraph() {
+        log.info("Graph Structure:");
+        adjacencyList.forEach((node, edges) -> {
+            log.info("Node: {}", node);
+            edges.forEach(edge -> log.info("  -> {}", edge));
+        });
+    }
+
     public void printAdjacencyList() {
         log.info("Adjacency List:");
         adjacencyList.forEach((node, edges) -> {

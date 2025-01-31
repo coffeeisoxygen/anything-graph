@@ -1,9 +1,12 @@
-package com.coffeecode.event;
+package com.coffeecode.event.publisher;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import com.coffeecode.event.core.GraphEvent;
+import com.coffeecode.event.listener.GraphEventListener;
 
 public class GraphEventPublisher {
 
