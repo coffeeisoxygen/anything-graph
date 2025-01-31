@@ -9,6 +9,7 @@ import javax.swing.JSplitPane;
 
 import com.coffeecode.ui.panelgraph.GraphPanel;
 import com.coffeecode.ui.service.MainFrameService;
+import com.coffeecode.ui.toolbar.ToolbarControlManager;
 import com.coffeecode.ui.toolbar.ToolbarPanel;
 
 import lombok.Getter;
@@ -21,6 +22,7 @@ public class MainFrame extends JFrame {
     private final GraphPanel graphPanel;
     private final ToolbarPanel toolbar;
     private final MainFrameService service;
+    private final ToolbarControlManager toolbarControlManager;
 
     public MainFrame() {
         super("Graph Algorithm Visualizer");
@@ -28,21 +30,14 @@ public class MainFrame extends JFrame {
 
         // Initialize components
         service = new MainFrameService();
-        toolbar = new ToolbarPanel();
-        graphPanel = new GraphPanel();
+        toolbar = new ToolbarPanel(service);  // Pass service
+        toolbarControlManager = new ToolbarControlManager(toolbar, service);
+        graphPanel = new GraphPanel(); // Fix: Initialize GraphPanel without passing Graph
 
-        setupGraphStream();
         setupLayout();
         setupWindowProperties();
 
         log.info("Main frame initialized successfully");
-    }
-
-    private void setupGraphStream() {
-        System.setProperty("org.graphstream.ui", "swing");
-        System.setProperty("org.graphstream.ui.renderer",
-                "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
-        log.info("GraphStream setup completed");
     }
 
     private void setupLayout() {
