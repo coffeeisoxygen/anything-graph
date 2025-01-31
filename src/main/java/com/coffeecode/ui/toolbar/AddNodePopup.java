@@ -15,7 +15,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import com.coffeecode.model.validation.LocationValidator;
+import com.coffeecode.model.validation.GraphResult;
 import com.coffeecode.ui.service.MainFrameService;
 import com.coffeecode.util.NominatimService;
 
@@ -145,31 +145,21 @@ public class AddNodePopup extends JDialog {
             return;
         }
 
-        if (longitudeField.getText().isEmpty() || latitudeField.getText().isEmpty()) {
-            showError("Coordinates cannot be empty");
-            return;
-        }
-
         try {
             double longitude = Double.parseDouble(longitudeField.getText());
             double latitude = Double.parseDouble(latitudeField.getText());
 
-            // Validate coordinates before adding
-            LocationValidator.validateCoordinates(latitude, longitude);
+            GraphResult<Boolean> result
+                    = service.addNode(name, latitude, longitude);
 
-            boolean added = service.addNode(name, latitude, longitude);
-            if (added) {
-                log.debug("Node added successfully: {}", name);
+            if (result.isSuccess()) {
                 showSuccess("Node added successfully");
+                dispose();
             } else {
-                showError("Node with this name already exists");
+                showError(result.getMessage());
             }
         } catch (NumberFormatException e) {
-            showError("Invalid coordinate format. Please enter valid numbers");
-            log.debug("Invalid coordinate format entered");
-        } catch (IllegalArgumentException e) {
-            showError(e.getMessage());
-            log.debug("Invalid coordinates: {}", e.getMessage());
+            showError("Invalid coordinate format");
         }
     }
 

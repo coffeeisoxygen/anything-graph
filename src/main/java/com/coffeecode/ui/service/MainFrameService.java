@@ -6,6 +6,7 @@ import org.graphstream.graph.implementations.SingleGraph;
 import com.coffeecode.event.core.GraphEvent;
 import com.coffeecode.model.LocationGraph;
 import com.coffeecode.model.LocationNode;
+import com.coffeecode.model.validation.GraphResult;
 import com.coffeecode.ui.panelgraph.GraphConverter;
 import com.coffeecode.ui.panelgraph.GraphPanel;
 
@@ -25,8 +26,10 @@ public class MainFrameService {
         this.locationGraph = new LocationGraph();
         this.graphPanel = new GraphPanel(visualGraph);
         setupGraphStream();
+        subscribeToGraphEvents();
+    }
 
-        // Subscribe to graph events
+    private void subscribeToGraphEvents() {
         locationGraph.subscribe(GraphEvent.NodeAdded.class,
                 event -> updateVisualization());
         locationGraph.subscribe(GraphEvent.EdgeAdded.class,
@@ -66,13 +69,18 @@ public class MainFrameService {
         log.debug("Graph visualization updated");
     }
 
-    public boolean addNode(String id, double latitude, double longitude) {
+    public GraphResult<Boolean> addNode(String id, double latitude, double longitude) {
         try {
             LocationNode node = new LocationNode(id, latitude, longitude);
-            return locationGraph.addNode(node);
-        } catch (Exception e) {
+            boolean added = locationGraph.addNode(node);
+            if (added) {
+                updateVisualization();
+                return GraphResult.success(true);
+            }
+            return GraphResult.failure("Node already exists");
+        } catch (IllegalArgumentException e) {
             log.error("Failed to add node: {}", e.getMessage());
-            return false;
+            return GraphResult.failure(e.getMessage());
         }
     }
 
