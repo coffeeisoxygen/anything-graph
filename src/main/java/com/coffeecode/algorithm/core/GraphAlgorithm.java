@@ -10,6 +10,24 @@ public interface GraphAlgorithm {
 
     String getName();
 
+    // Add step-by-step support
+    boolean hasNextStep();
+
+    void executeStep();
+
+    // Add pause/resume
+    void pause();
+
+    void resume();
+
+    // Get current state
+    boolean isComplete();
+
+    List<LocationNode> getCurrentPath();
+
+    double getCurrentDistance();
+
+    // Existing methods
     List<LocationNode> execute(
             LocationGraph graph,
             LocationNode start,
