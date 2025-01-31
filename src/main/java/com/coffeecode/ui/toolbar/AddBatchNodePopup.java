@@ -7,7 +7,7 @@ import com.coffeecode.util.NominatimService;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.Value;
+
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -16,7 +16,7 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -267,7 +267,7 @@ public class AddBatchNodePopup extends JDialog {
                 double lon = Double.parseDouble((String) tableModel.getValueAt(i, 2));
                 nodes.add(new LocationNode(id, lat, lon));
                 tableModel.setValueAt("Valid", i, 3);
-            } catch (Exception e) {
+            } catch (NumberFormatException e) {
                 tableModel.setValueAt("Invalid", i, 3);
                 log.error("Invalid node at row {}: {}", i, e.getMessage());
             }
@@ -323,11 +323,6 @@ public class AddBatchNodePopup extends JDialog {
                     double[] coords = nominatimService.findLongLat(locationName);
                     publish(new LocationSearchResult(row, coords, null));
                     return;
-                } catch (IOException e) {
-                    lastError = e;
-                    log.warn("Network error on attempt {} for {}: {}",
-                            attempt + 1, locationName, e.getMessage());
-                    sleepBetweenAttempts(attempt);
                 } catch (IllegalArgumentException e) {
                     lastError = e;
                     log.warn("Invalid location on attempt {} for {}: {}",
