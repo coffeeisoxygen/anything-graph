@@ -1,11 +1,12 @@
 package com.coffeecode.ui.service;
 
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.implementations.SingleGraph;
+
 import com.coffeecode.event.core.GraphEvent;
 import com.coffeecode.model.LocationGraph;
 import com.coffeecode.model.LocationNode;
-import org.graphstream.graph.Graph;
-import org.graphstream.graph.implementations.SingleGraph;
-import com.coffeecode.service.GraphConverter;
+import com.coffeecode.ui.panelgraph.GraphConverter;
 import com.coffeecode.ui.panelgraph.GraphPanel;
 
 import lombok.Getter;
@@ -45,7 +46,7 @@ public class MainFrameService {
         visualGraph.setAttribute("ui.stylesheet", """
             graph { padding: 50px; }
             node {
-                size: 30px;
+                size: 50px;
                 fill-color: #666666;
                 text-size: 14px;
                 text-color: white;

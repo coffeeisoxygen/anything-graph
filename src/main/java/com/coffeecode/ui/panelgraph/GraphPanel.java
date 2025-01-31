@@ -9,7 +9,6 @@ import org.graphstream.ui.swing_viewer.SwingViewer;
 import org.graphstream.ui.swing_viewer.ViewPanel;
 
 import com.coffeecode.model.LocationGraph;
-import com.coffeecode.service.GraphConverter;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

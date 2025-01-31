@@ -1,4 +1,4 @@
-package com.coffeecode.service;
+package com.coffeecode.ui.panelgraph;
 
 public class GraphConversionException extends RuntimeException {
 

@@ -1,4 +1,4 @@
-package com.coffeecode.service;
+package com.coffeecode.ui.panelgraph;
 
 import org.graphstream.graph.EdgeRejectedException;
 import org.graphstream.graph.ElementNotFoundException;

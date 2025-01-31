@@ -15,8 +15,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import com.coffeecode.model.validation.LocationValidator;
 import com.coffeecode.ui.service.MainFrameService;
-import com.coffeecode.ui.validation.LocationValidator;
 import com.coffeecode.util.NominatimService;
 
 import lombok.RequiredArgsConstructor;
@@ -134,11 +134,11 @@ public class AddNodePopup extends JDialog {
         }
     }
 
-        private void handleGetFromMap() {
-            showError("This feature is still in development phase");
-        }
+    private void handleGetFromMap() {
+        showError("This feature is still in development phase");
+    }
 
-        private void handleAddNode() {
+    private void handleAddNode() {
         String name = nameField.getText().trim();
         if (name.isEmpty()) {
             showError("Node name cannot be empty");
