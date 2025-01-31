@@ -4,6 +4,7 @@ import com.coffeecode.model.LocationEdge;
 import com.coffeecode.model.LocationNode;
 
 import lombok.Getter;
+import lombok.Value;
 
 public sealed interface GraphEvent {
 
@@ -45,6 +46,15 @@ public sealed interface GraphEvent {
         public EdgeRemoved(LocationEdge edge) {
             this.edge = edge;
         }
+    }
+
+    @Value
+    class EdgesCleared implements GraphEvent {
+
+        public static final EdgesCleared INSTANCE = new EdgesCleared();
+
+        private EdgesCleared() {
+        } // Private constructor for singleton
     }
 
     /**

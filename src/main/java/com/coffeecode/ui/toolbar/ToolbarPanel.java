@@ -162,11 +162,32 @@ public class ToolbarPanel extends JToolBar {
     }
 
     private void handleRemoveEdge() {
-        System.out.println("Remove Edge action triggered");
+        RemoveEdgePopup.showDialog(
+            (JFrame) SwingUtilities.getWindowAncestor(this),
+            service
+        );
     }
 
     private void handleClearAll() {
-        System.out.println("Clear All action triggered");
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to clear all nodes and edges?",
+                "Clear Graph",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (result == JOptionPane.YES_OPTION) {
+            GraphResult<Boolean> clearResult = service.clearGraph();
+            if (!clearResult.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Failed to clear graph: " + clearResult.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
     }
 
     private void handlePlay() {

@@ -239,6 +239,35 @@ public class MainFrameService {
         return graphPanel;
     }
 
+    public Set<String> getAllNodeIds() {
+        return locationGraph.getNodes().stream()
+                .map(LocationNode::getId)
+                .collect(Collectors.toSet());
+    }
+
+    public GraphResult<Integer> autoConnectNodes() {
+        throw new UnsupportedOperationException("Use autoConnectNodes(threshold, type) instead");
+    }
+
+    // retunr all edges
+    public Set<LocationEdge> getAllEdges() {
+
+        return locationGraph.getAllEdges();
+
+    }
+
+    public GraphResult<Boolean> removeEdge(LocationEdge edge) {
+        try {
+            boolean removed = locationGraph.removeEdge(edge);
+            return removed
+                    ? GraphResult.success(true)
+                    : GraphResult.failure("Failed to remove edge");
+        } catch (Exception e) {
+            log.error("Error removing edge: {}", e.getMessage());
+            return GraphResult.failure(e.getMessage());
+        }
+    }
+
     public void startAlgorithm() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'startAlgorithm'");
@@ -251,16 +280,6 @@ public class MainFrameService {
 
     public void stopAlgorithm() {
         //TODO
-    }
-
-    public Set<String> getAllNodeIds() {
-        return locationGraph.getNodes().stream()
-                .map(LocationNode::getId)
-                .collect(Collectors.toSet());
-    }
-
-    public GraphResult<Integer> autoConnectNodes() {
-        throw new UnsupportedOperationException("Use autoConnectNodes(threshold, type) instead");
     }
 
 }

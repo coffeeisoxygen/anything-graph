@@ -6,7 +6,7 @@ public class GraphStreamConfig {
 
     private static final String DEFAULT_STYLE
             = "node {"
-            + "   size: 30px;"
+            + "   size: 100px;"
             + "   fill-color: #666666;"
             + "   text-size: 14;"
             + "}"

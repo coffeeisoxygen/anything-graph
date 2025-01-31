@@ -3,8 +3,10 @@ package com.coffeecode.model;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import com.coffeecode.event.core.EventListener;
 import com.coffeecode.event.core.EventManager;
@@ -204,6 +206,68 @@ public class LocationGraph {
         adjacencyList.clear();
         eventManager.publish(GraphEvent.GraphCleared.INSTANCE);
         log.info("Graph cleared successfully");
+    }
+
+    /**
+     * Clears all edges while preserving nodes Used for: - Graph reset -
+     * Algorithm initialization - Edge management
+     */
+    public void clearEdges() {
+        if (adjacencyList.isEmpty()) {
+            return; // Nothing to clear
+        }
+
+        synchronized (adjacencyList) {
+            adjacencyList.values().forEach(Set::clear);
+            eventManager.publish(GraphEvent.EdgesCleared.INSTANCE);
+            log.info("All edges cleared successfully");
+        }
+    }
+
+    /**
+     * Gets total number of edges in graph
+     */
+    // get all edges in the graph
+    public Set<LocationEdge> getAllEdges() {
+        Set<LocationEdge> edges = adjacencyList.values().stream()
+                .flatMap(Set::stream)
+                .collect(Collectors.toUnmodifiableSet());
+        log.info("Retrieved all edges: {}", edges);
+        return edges;
+    }
+
+    /**
+     * Gets all destination nodes from a source node
+     */
+    public Set<LocationNode> getDestinations(@NonNull LocationNode source) {
+        return adjacencyList.getOrDefault(source, Set.of()).stream()
+                .map(LocationEdge::getDestination)
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    /**
+     * Gets all nodes connected to a given node (both directions)
+     */
+    public Set<LocationNode> getConnectedNodes(@NonNull LocationNode node) {
+        Set<LocationNode> connected = new HashSet<>();
+
+        // Add destinations
+        connected.addAll(getDestinations(node));
+
+        // Add sources
+        adjacencyList.forEach((source, edges) -> {
+            if (edges.stream().anyMatch(e -> e.getDestination().equals(node))) {
+                connected.add(source);
+            }
+        });
+
+        return Collections.unmodifiableSet(connected);
+    }
+
+    public Optional<LocationEdge> getEdge(@NonNull LocationNode source, @NonNull LocationNode target) {
+        return adjacencyList.getOrDefault(source, Set.of()).stream()
+                .filter(e -> e.getDestination().equals(target))
+                .findFirst();
     }
 
     /**
