@@ -1,5 +1,7 @@
 package com.coffeecode.event.state;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,25 +22,24 @@ public class AlgorithmState {
     private volatile boolean isComplete;
     private final EventManager eventManager;
 
-    // Current algorithm state
     private LocationNode currentNode;
     private double progress;
 
-    // Stats tracking (for future algorithm analysis)
-    @Getter(AccessLevel.PACKAGE) // For testing
+    @Getter(AccessLevel.PACKAGE)
     private final Map<String, Double> metrics;
 
     public AlgorithmState(EventManager eventManager) {
-        this.eventManager = Objects.requireNonNull(eventManager, "EventManager cannot be null");
+        this.eventManager = Objects.requireNonNull(eventManager);
         this.metrics = new ConcurrentHashMap<>();
-        this.isPaused = false;
-        this.isComplete = false;
-        this.currentNode = null;
-        this.progress = 0.0;
-        this.metrics.clear();
+        resethelper();
     }
 
     public synchronized void reset() {
+        resethelper();
+        eventManager.publish(AlgorithmEvent.Reset.INSTANCE);
+    }
+
+    private synchronized void resethelper() {
         isPaused = false;
         isComplete = false;
         currentNode = null;
@@ -59,21 +60,34 @@ public class AlgorithmState {
     }
 
     public synchronized void pause() {
-        isPaused = true;
-        eventManager.publish(new AlgorithmEvent.Paused());
+        if (!isPaused) {
+            isPaused = true;
+            eventManager.publish(AlgorithmEvent.Paused.INSTANCE);
+        }
     }
 
     public synchronized void resume() {
-        isPaused = false;
-        eventManager.publish(new AlgorithmEvent.Resumed());
+        if (isPaused) {
+            isPaused = false;
+            eventManager.publish(AlgorithmEvent.Resumed.INSTANCE);
+        }
     }
 
     public synchronized void complete() {
-        isComplete = true;
-        eventManager.publish(new AlgorithmEvent.Completed(metrics));
+        if (!isComplete) {
+            isComplete = true;
+            eventManager.publish(new AlgorithmEvent.Completed(
+                    Collections.unmodifiableMap(new HashMap<>(metrics))));
+            log.debug("Algorithm completed with metrics: {}", metrics);
+        }
     }
 
     public synchronized void updateMetric(String key, double value) {
         metrics.put(key, value);
+    }
+
+    public synchronized void fail(String error) {
+        isComplete = true;
+        eventManager.publish(new AlgorithmEvent.Failed(error));
     }
 }
