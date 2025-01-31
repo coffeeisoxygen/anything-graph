@@ -136,21 +136,6 @@ public class AddBatchNodePopup extends JDialog {
         statusLabel.setText("Cleared all entries");
     }
 
-    private void getAllLocations() {
-        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        statusLabel.setText("Fetching locations...");
-
-        List<Integer> rowsToProcess = collectNonEmptyRows();
-
-        if (rowsToProcess.isEmpty()) {
-            setCursor(Cursor.getDefaultCursor());
-            statusLabel.setText("No locations to process");
-            return;
-        }
-
-        executeLocationSearch();
-    }
-
     private List<Integer> collectNonEmptyRows() {
         List<Integer> rowsToProcess = new ArrayList<>();
         for (int i = 0; i < tableModel.getRowCount(); i++) {
@@ -160,6 +145,20 @@ public class AddBatchNodePopup extends JDialog {
             }
         }
         return rowsToProcess;
+    }
+
+    private void getAllLocations() {
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        statusLabel.setText("Fetching locations...");
+
+        List<Integer> rowsToProcess = collectNonEmptyRows();
+        if (rowsToProcess.isEmpty()) {
+            setCursor(Cursor.getDefaultCursor());
+            statusLabel.setText("No locations to process");
+            return;
+        }
+
+        executeLocationSearch();
     }
 
     private void executeLocationSearch() {
