@@ -3,6 +3,8 @@ package com.coffeecode.ui.toolbar;
 import com.coffeecode.core.GraphResult;
 import com.coffeecode.model.LocationNode;
 import com.coffeecode.ui.service.MainFrameService;
+import com.coffeecode.util.NominatimService;
+
 import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
@@ -17,10 +19,13 @@ public class AddBatchNodePopup extends JDialog {
     private final MainFrameService service;
     private final DefaultTableModel tableModel;
     private final JTable table;
+    private final NominatimService nominatimService;
+    private JLabel statusLabel;
 
     public AddBatchNodePopup(JFrame parent, MainFrameService service) {
         super(parent, "Add Multiple Nodes", true);
         this.service = service;
+        this.nominatimService = new NominatimService();
 
         // Setup table model
         String[] columns = {"ID", "Latitude", "Longitude", "Status"};
@@ -40,6 +45,18 @@ public class AddBatchNodePopup extends JDialog {
         setSize(600, 400);
         setLocationRelativeTo(getParent());
 
+        // Info Panel
+        JPanel infoPanel = new JPanel(new BorderLayout());
+        JLabel infoLabel = new JLabel(
+                "<html>Enter location names, then click 'Get All Locations' "
+                + "to fetch coordinates automatically</html>"
+        );
+        infoLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        statusLabel = new JLabel("Ready");
+        statusLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        infoPanel.add(infoLabel, BorderLayout.CENTER);
+        infoPanel.add(statusLabel, BorderLayout.EAST);
+
         // Table panel
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane, BorderLayout.CENTER);
@@ -47,14 +64,14 @@ public class AddBatchNodePopup extends JDialog {
         // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton addRowButton = new JButton("Add Row");
-        JButton removeRowButton = new JButton("Remove Selected");
-        JButton importButton = new JButton("Import CSV");
+        JButton clearAllButton = new JButton("Clear All");
+        JButton getLocationsButton = new JButton("Get All Locations");
         JButton addAllButton = new JButton("Add All");
         JButton closeButton = new JButton("Close");
 
         buttonPanel.add(addRowButton);
-        buttonPanel.add(removeRowButton);
-        buttonPanel.add(importButton);
+        buttonPanel.add(clearAllButton);
+        buttonPanel.add(getLocationsButton);
         buttonPanel.add(addAllButton);
         buttonPanel.add(closeButton);
 
@@ -62,8 +79,8 @@ public class AddBatchNodePopup extends JDialog {
 
         // Actions
         addRowButton.addActionListener(e -> addEmptyRow());
-        removeRowButton.addActionListener(e -> removeSelectedRows());
-        importButton.addActionListener(e -> importCSV());
+        clearAllButton.addActionListener(e -> clearAll());
+        getLocationsButton.addActionListener(e -> getAllLocations());
         addAllButton.addActionListener(e -> addAllNodes());
         closeButton.addActionListener(e -> dispose());
 
@@ -130,6 +147,56 @@ public class AddBatchNodePopup extends JDialog {
                 "CSV import not implemented yet",
                 "Not Available",
                 JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void getAllLocations() {
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        statusLabel.setText("Fetching locations...");
+
+        new SwingWorker<Void, Integer>() {
+            @Override
+            protected Void doInBackground() {
+                for (int i = 0; i < tableModel.getRowCount(); i++) {
+                    String locationName = (String) tableModel.getValueAt(i, 0);
+                    if (locationName != null && !locationName.trim().isEmpty()) {
+                        try {
+                            double[] coords = nominatimService.findLongLat(locationName);
+                            if (coords.length == 2) {
+                                tableModel.setValueAt(String.format("%.6f", coords[1]), i, 1);
+                                tableModel.setValueAt(String.format("%.6f", coords[0]), i, 2);
+                                tableModel.setValueAt("Found", i, 3);
+                            } else {
+                                tableModel.setValueAt("Not Found", i, 3);
+                            }
+                            publish(i);
+                        } catch (Exception e) {
+                            log.error("Error fetching location: {}", locationName, e);
+                            tableModel.setValueAt("Error", i, 3);
+                        }
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void process(List<Integer> chunks) {
+                int progress = chunks.get(chunks.size() - 1) + 1;
+                statusLabel.setText(String.format("Processing... %d/%d",
+                        progress, tableModel.getRowCount()));
+            }
+
+            @Override
+            protected void done() {
+                setCursor(Cursor.getDefaultCursor());
+                statusLabel.setText("Location search completed");
+            }
+        }.execute();
+    }
+
+    private void clearAll() {
+        tableModel.setRowCount(0);
+        addEmptyRow();
+        statusLabel.setText("Cleared all entries");
     }
 
     public static void showPopup(JFrame parent, MainFrameService service) {
