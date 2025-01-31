@@ -71,28 +71,28 @@ public class ToolbarPanel extends JToolBar {
         // Upper control panel (Main controls)
         JPanel mainControlPanel = new JPanel();
         mainControlPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        mainControlPanel.add(new JLabel("Algorithm: "));
-        mainControlPanel.add(algorithmType);
-        mainControlPanel.add(algorithmSelector);
         mainControlPanel.add(addNodeButton);
         mainControlPanel.add(addBatchNodeButton);
-        mainControlPanel.add(removeNodeButton);
-        mainControlPanel.add(removeAllEdgesButton);
         mainControlPanel.add(addEdgeButton);
+        mainControlPanel.add(removeNodeButton);
         mainControlPanel.add(removeEdgeButton);
+        mainControlPanel.add(removeAllEdgesButton);
         mainControlPanel.add(clearAllButton);
 
         // Lower control panel (Animation controls)
         JPanel animationControlPanel = new JPanel();
         animationControlPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        animationControlPanel.add(new JLabel("Speed: "));
-        animationControlPanel.add(speedSlider);
+        mainControlPanel.add(new JLabel("Algorithm: "));
+        mainControlPanel.add(algorithmType);
+        mainControlPanel.add(algorithmSelector);
         animationControlPanel.add(playButton);
         animationControlPanel.add(pauseButton);
         animationControlPanel.add(stopButton);
         animationControlPanel.add(nextStepButton);
         animationControlPanel.add(prevStepButton);
         animationControlPanel.add(skipToEndButton);
+        animationControlPanel.add(new JLabel("Speed: "));
+        animationControlPanel.add(speedSlider);
 
         // Add panels to toolbar
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -165,29 +165,28 @@ public class ToolbarPanel extends JToolBar {
         );
     }
 
-    private void handleRemoveEdge() {
-        RemoveEdgePopup.showDialog(
+                void handleRemoveEdge() {
+                veEdgePopup.showDialog(
             (JFrame) SwingUtilities.getWindowAncestor(this),
             service
         );
-    }
 
 
-    private void handleClearAllEdges() {
-        int result = JOptionPane.showConfirmDialog(
-            this,
-            "Are you sure you want to clear all edges?",
-            "Clear Edges",
+                void 
+                result = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to 
+                "Clear Edges",
             JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
+        JOptionPane.WARNING_MESSAGE
         );
     
         if (result == JOptionPane.YES_OPTION) {
-            GraphResult<Boolean> clearResult = service.clearEdges();
-            if (!clearResult.isSuccess()) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Failed to clear edges: " + clearResult.getMessage(),
+            GraphResult<Boolean> clearResult =
+                        arRes
+                        ionPane.showMessageDialog(
+                        this,
+                        "Failed to clear edges: " + clearResult.getMessage(),
                     "Error",
                     JOptionPane.ERROR_MESSAGE
                 );
@@ -195,21 +194,21 @@ public class ToolbarPanel extends JToolBar {
         }
     }
 
-    private void handleClearAll() {
-        int result = JOptionPane.showConfirmDialog(
-            this,
-            "Are you sure you want to clear all nodes and edges?",
-            "Clear Graph",
+                void 
+                result = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to 
+                "Clear Graph",
             JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
+        JOptionPane.WARNING_MESSAGE
         );
     
         if (result == JOptionPane.YES_OPTION) {
-            GraphResult<Boolean> clearResult = service.clearGraph();
-            if (!clearResult.isSuccess()) {
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Failed to clear graph: " + clearResult.getMessage(),
+            GraphResult<Boolean> clearResult =
+                        arRes
+                        ionPane.showMessageDialog(
+                        this,
+                        "Failed to clear graph: " + clearResult.getMessage(),
                     "Error",
                     JOptionPane.ERROR_MESSAGE
                 );
