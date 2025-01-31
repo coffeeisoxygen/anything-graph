@@ -90,4 +90,9 @@ public class AlgorithmState {
         isComplete = true;
         eventManager.publish(new AlgorithmEvent.Failed(error));
     }
+
+    public void updateProgress(double progress2) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'updateProgress'");
+    }
 }

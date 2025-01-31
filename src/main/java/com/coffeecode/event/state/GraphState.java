@@ -142,4 +142,19 @@ public class GraphState {
     public LocationNode getParentNode(@NotNull @NonNull LocationNode node) {
         return parent.get(node);
     }
+
+    public boolean isPaused() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'isPaused'");
+    }
+
+    public void updateState(LocationNode current, double progress) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'updateState'");
+    }
+
+    public void step() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'step'");
+    }
 }
