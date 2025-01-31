@@ -7,6 +7,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.coffeecode.event.core.EventListener;
 import com.coffeecode.event.core.GraphEvent;
 import com.coffeecode.model.LocationGraph;
 
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class TestHelper {
+
     private static final int DEFAULT_WAIT_MS = 200;
     private final List<GraphEvent> events;
     private final LocationGraph graph;
@@ -28,7 +30,7 @@ public class TestHelper {
     }
 
     private void setupEventSubscriptions() {
-        Consumer<GraphEvent> eventHandler = event -> {
+        EventListener<GraphEvent.NodeAdded> nodeAddedListener = event -> {
             events.add(event);
             int remaining = expectedEvents.decrementAndGet();
             if (remaining <= 0) {
@@ -36,10 +38,34 @@ public class TestHelper {
             }
         };
 
-        graph.subscribe(GraphEvent.NodeAdded.class, eventHandler);
-        graph.subscribe(GraphEvent.EdgeAdded.class, eventHandler);
-        graph.subscribe(GraphEvent.NodeRemoved.class, eventHandler);
-        graph.subscribe(GraphEvent.EdgeRemoved.class, eventHandler);
+        EventListener<GraphEvent.EdgeAdded> edgeAddedListener = event -> {
+            events.add(event);
+            int remaining = expectedEvents.decrementAndGet();
+            if (remaining <= 0) {
+                eventLatch.countDown();
+            }
+        };
+
+        EventListener<GraphEvent.NodeRemoved> nodeRemovedListener = event -> {
+            events.add(event);
+            int remaining = expectedEvents.decrementAndGet();
+            if (remaining <= 0) {
+                eventLatch.countDown();
+            }
+        };
+
+        EventListener<GraphEvent.EdgeRemoved> edgeRemovedListener = event -> {
+            events.add(event);
+            int remaining = expectedEvents.decrementAndGet();
+            if (remaining <= 0) {
+                eventLatch.countDown();
+            }
+        };
+
+        graph.subscribe(GraphEvent.NodeAdded.class, nodeAddedListener);
+        graph.subscribe(GraphEvent.EdgeAdded.class, edgeAddedListener);
+        graph.subscribe(GraphEvent.NodeRemoved.class, nodeRemovedListener);
+        graph.subscribe(GraphEvent.EdgeRemoved.class, edgeRemovedListener);
     }
 
     public void expectEvents(int count) {
@@ -49,7 +75,7 @@ public class TestHelper {
 
     public void waitForEvents() throws InterruptedException {
         if (!eventLatch.await(DEFAULT_WAIT_MS, TimeUnit.MILLISECONDS)) {
-            log.warn("Timeout waiting for events. Expected: {}, Received: {}", 
+            log.warn("Timeout waiting for events. Expected: {}, Received: {}",
                     expectedEvents.get(), events.size());
         }
     }

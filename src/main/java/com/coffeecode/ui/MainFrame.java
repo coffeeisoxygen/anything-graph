@@ -4,11 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 
-import com.coffeecode.event.NodeChangeListener;
-import com.coffeecode.model.LocationNode;
-import com.coffeecode.ui.map.MapPanel;
 import com.coffeecode.ui.panelgraph.GraphPanel;
 import com.coffeecode.ui.service.MainFrameService;
 import com.coffeecode.ui.toolbar.ToolbarPanel;
@@ -20,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 public class MainFrame extends JFrame {
 
-    private final MapPanel mapPanel;
     private final GraphPanel graphPanel;
     private final ToolbarPanel toolbar;
     private final MainFrameService service;
@@ -32,11 +29,9 @@ public class MainFrame extends JFrame {
         // Initialize components
         service = new MainFrameService();
         toolbar = new ToolbarPanel();
-        mapPanel = new MapPanel();
         graphPanel = new GraphPanel();
 
         setupLayout();
-        setupEventHandlers();
         setupWindowProperties();
 
         log.info("Main frame initialized successfully");
@@ -48,43 +43,14 @@ public class MainFrame extends JFrame {
         // Create split pane
         JSplitPane splitPane = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
-                mapPanel,
-                graphPanel
+                graphPanel,
+                new JPanel() // Placeholder for the second component
         );
         splitPane.setResizeWeight(0.5);
 
         // Add components
         add(toolbar, BorderLayout.NORTH);
         add(splitPane, BorderLayout.CENTER);
-    }
-
-    private void setupEventHandlers() {
-        mapPanel.addNodeChangeListener(new NodeChangeListener() {
-            @Override
-            public void onNodeAdded(LocationNode node) {
-                service.getLocationGraph().addNode(node);
-                graphPanel.updateGraph(service.getLocationGraph());
-            }
-
-            @Override
-            public void onNodeRemoved(LocationNode node) {
-                service.getLocationGraph().removeNode(node);
-                graphPanel.updateGraph(service.getLocationGraph());
-            }
-
-            @Override
-            public void onStartNodeChanged(LocationNode node) {
-                // service.getLocationGraph().setStartNode(node);
-                // graphPanel.updateGraph(service.getLocationGraph());
-            }
-
-            @Override
-            public void onEndNodeChanged(LocationNode node) {
-                // service.getLocationGraph().setEndNode(node);
-                // graphPanel.updateGraph(service.getLocationGraph());
-            }
-
-        });
     }
 
     private void setupWindowProperties() {
