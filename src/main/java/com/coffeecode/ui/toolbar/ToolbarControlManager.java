@@ -37,7 +37,7 @@ public class ToolbarControlManager {
         toolbarPanel.getPlayButton().setEnabled(true);
         toolbarPanel.getPauseButton().setEnabled(false);
         enableEditingControls();
-        mainFrameService.stopAlgorithm();
+        mainFrameService.pauseAlgorithm();
     }
 
     private void disableEditingControls() {

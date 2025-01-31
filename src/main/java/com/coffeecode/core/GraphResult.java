@@ -1,4 +1,4 @@
-package com.coffeecode.model.validation;
+package com.coffeecode.core;
 
 import lombok.Value;
 

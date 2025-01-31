@@ -15,7 +15,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import com.coffeecode.model.validation.GraphResult;
+import com.coffeecode.core.GraphResult;
 import com.coffeecode.ui.service.MainFrameService;
 import com.coffeecode.util.NominatimService;
 
@@ -149,17 +149,18 @@ public class AddNodePopup extends JDialog {
             double longitude = Double.parseDouble(longitudeField.getText());
             double latitude = Double.parseDouble(latitudeField.getText());
 
-            GraphResult<Boolean> result
-                    = service.addNode(name, latitude, longitude);
+            // Use single node addition method
+            GraphResult<Boolean> result = service.addNode(name, latitude, longitude);
 
             if (result.isSuccess()) {
-                showSuccess("Node added successfully");
+                log.debug("Node added successfully: {}", name);
                 dispose();
             } else {
                 showError(result.getMessage());
             }
         } catch (NumberFormatException e) {
-            showError("Invalid coordinate format");
+            showError("Please enter valid coordinates");
+            log.debug("Invalid coordinate format entered");
         }
     }
 
@@ -168,13 +169,6 @@ public class AddNodePopup extends JDialog {
                 message,
                 "Error",
                 JOptionPane.ERROR_MESSAGE);
-    }
-
-    private void showSuccess(String message) {
-        JOptionPane.showMessageDialog(this,
-                message,
-                "Success",
-                JOptionPane.INFORMATION_MESSAGE);
     }
 
     public static void showPopup(JFrame parent, MainFrameService service) {

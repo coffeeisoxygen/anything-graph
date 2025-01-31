@@ -14,6 +14,7 @@ import javax.swing.JSlider;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 
+import com.coffeecode.core.GraphResult;
 import com.coffeecode.ui.service.MainFrameService;
 
 import lombok.Getter;
@@ -130,11 +131,11 @@ public class ToolbarPanel extends JToolBar {
         );
 
         if (nodeId != null && !nodeId.isEmpty()) {
-            boolean removed = service.removeNode(nodeId);
-            if (!removed) {
+            GraphResult<Boolean> result = service.removeNode(nodeId);
+            if (!result.isSuccess()) {
                 JOptionPane.showMessageDialog(
                         this,
-                        "Node not found",
+                        result.getMessage(),
                         "Error",
                         JOptionPane.ERROR_MESSAGE
                 );
