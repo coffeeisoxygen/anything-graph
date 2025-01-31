@@ -208,6 +208,14 @@ public class LocationGraph {
         log.info("Graph cleared successfully");
     }
 
+    public void clearAll() {
+        synchronized (adjacencyList) {
+            adjacencyList.clear();
+            eventManager.publish(GraphEvent.GraphCleared.INSTANCE);
+            log.info("Graph cleared completely");
+        }
+    }
+
     /**
      * Clears all edges while preserving nodes Used for: - Graph reset -
      * Algorithm initialization - Edge management

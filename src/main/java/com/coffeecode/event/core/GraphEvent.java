@@ -57,15 +57,13 @@ public sealed interface GraphEvent {
         } // Private constructor for singleton
     }
 
-    /**
-     * Event indicating entire graph was cleared
-     */
-    final class GraphCleared implements GraphEvent {
+    @Value
+    class GraphCleared implements GraphEvent {
+
+        public static final GraphCleared INSTANCE = new GraphCleared();
 
         private GraphCleared() {
-        } // Prevents external instantiation
-
-        // Singleton instance since this event has no state
-        public static final GraphCleared INSTANCE = new GraphCleared();
+        } // Singleton
     }
+
 }

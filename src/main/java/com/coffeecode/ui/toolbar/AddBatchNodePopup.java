@@ -78,6 +78,7 @@ public class AddBatchNodePopup extends JDialog {
         // Add popup menu
         JPopupMenu popupMenu = createPopupMenu();
         table.setComponentPopupMenu(popupMenu);
+        addDefaultCities();
     }
 
     private JPopupMenu createPopupMenu() {
@@ -185,68 +186,29 @@ public class AddBatchNodePopup extends JDialog {
         new LocationSearchWorker(selectedRows).execute();
     }
 
-    // private void executeLocationSearch() {
-    //     new SwingWorker<Void, LocationSearchResult>() {
-    //         @Override
-    //         protected Void doInBackground() {
-    //             for (int i = 0; i < tableModel.getRowCount(); i++) {
-    //                 String locationName = (String) tableModel.getValueAt(i, 0);
-    //                 if (locationName != null && !locationName.trim().isEmpty()) {
-    //                     searchLocationWithRetry(i, locationName);
-    //                     sleepBetweenRequests();
-    //                 }
-    //             }
-    //             return null;
-    //         }
-    //         private void searchLocationWithRetry(int row, String locationName) {
-    //             Exception lastError = null;
-    //             for (int attempt = 0; attempt < RETRY_ATTEMPTS; attempt++) {
-    //                 try {
-    //                     double[] coords = nominatimService.findLongLat(locationName);
-    //                     publish(new LocationSearchResult(row, coords, null));
-    //                     return;
-    //                 } catch (Exception e) {
-    //                     lastError = e;
-    //                     log.warn("Attempt {} failed for {}: {}", attempt + 1, locationName, e.getMessage());
-    //                     sleepBetweenAttempts(attempt);
-    //                 }
-    //             }
-    //             publish(new LocationSearchResult(row, null, lastError));
-    //         }
-    //         private void sleepBetweenRequests() {
-    //             try {
-    //                 Thread.sleep(RATE_LIMIT_DELAY);
-    //             } catch (InterruptedException e) {
-    //                 Thread.currentThread().interrupt();
-    //             }
-    //         }
-    //         private void sleepBetweenAttempts(int attempt) {
-    //             try {
-    //                 Thread.sleep(RATE_LIMIT_DELAY * (attempt + 1));
-    //             } catch (InterruptedException e) {
-    //                 Thread.currentThread().interrupt();
-    //             }
-    //         }
-    //         @Override
-    //         protected void process(List<LocationSearchResult> results) {
-    //             results.forEach(AddBatchNodePopup.this::updateTableRow);
-    //         }
-    //         @Override
-    //         protected void done() {
-    //             setCursor(Cursor.getDefaultCursor());
-    //             statusLabel.setText("Location search completed");
-    //         }
-    //     }.execute();
-    // }
-    // private void retrySelectedLocations() {
-    //     int[] selectedRows = table.getSelectedRows();
-    //     if (selectedRows.length == 0) {
-    //         return;
-    //     }
-    //     setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-    //     statusLabel.setText("Retrying selected locations...");
-    //     new LocationSearchWorker(selectedRows).execute();
-    // }
+    private void AddDefaultValue() {
+        tableModel.addRow(new Object[]{"", "", "", "Not Added"});
+    }
+
+    private void addDefaultCities() {
+        String[][] defaultCities = {
+            {"Jakarta", "-6.2088", "106.8456"},
+            {"Surabaya", "-7.2575", "112.7521"},
+            {"Bandung", "-6.9175", "107.6191"},
+            {"Medan", "3.5952", "98.6722"},
+            {"Bekasi", "-6.2383", "106.9756"},
+            {"Tangerang", "-6.2024", "106.6527"},
+            {"Depok", "-6.4025", "106.7942"},
+            {"Semarang", "-6.9667", "110.4167"},
+            {"Palembang", "-2.9909", "104.7566"},
+            {"Makassar", "-5.1477", "119.4327"}
+        };
+
+        for (String[] city : defaultCities) {
+            tableModel.addRow(new Object[]{city[0], city[1], city[2], "Not Added"});
+        }
+    }
+
     private void updateTableRow(LocationSearchResult result) {
         if (result.error != null) {
             tableModel.setValueAt("Error: " + result.error.getMessage(), result.row, 3);

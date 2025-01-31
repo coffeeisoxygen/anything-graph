@@ -99,17 +99,6 @@ public class MainFrameService {
         }
     }
 
-    // claer graph
-    public GraphResult<Boolean> clearGraph() {
-        try {
-            locationGraph.clear();
-            return GraphResult.success(true);
-        } catch (Exception e) {
-            log.error("Failed to clear graph: {}", e.getMessage());
-            return GraphResult.failure(e.getMessage());
-        }
-    }
-
     // Remove eDGE
     public GraphResult<Boolean> removeNode(String id) {
         try {
@@ -268,6 +257,18 @@ public class MainFrameService {
         }
     }
 
+
+    public GraphResult<Boolean> clearGraph() {
+        try {
+            locationGraph.clearAll();
+            visualGraph.clear(); // Clear visual representation
+            graphPanel.refresh(); // Refresh UI
+            return GraphResult.success(true);
+        } catch (Exception e) {
+            log.error("Failed to clear graph: {}", e.getMessage());
+            return GraphResult.failure(e.getMessage());
+        }
+    }    
     public void startAlgorithm() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'startAlgorithm'");
