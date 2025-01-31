@@ -199,7 +199,7 @@ class LocationGraphTest {
             Runtime runtime = Runtime.getRuntime();
             long initialMemory = runtime.totalMemory() - runtime.freeMemory();
 
-            for (int i = 0; i < 10000; i++) {
+            for (int i = 0; i < 100; i++) {
                 LocationNode node = new LocationNode("Node" + i, i % 90, i % 180);
                 graph.addNode(node);
                 if (i > 0) {

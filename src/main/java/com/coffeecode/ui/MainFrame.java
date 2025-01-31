@@ -31,10 +31,18 @@ public class MainFrame extends JFrame {
         toolbar = new ToolbarPanel();
         graphPanel = new GraphPanel();
 
+        setupGraphStream();
         setupLayout();
         setupWindowProperties();
 
         log.info("Main frame initialized successfully");
+    }
+
+    private void setupGraphStream() {
+        System.setProperty("org.graphstream.ui", "swing");
+        System.setProperty("org.graphstream.ui.renderer",
+                "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
+        log.info("GraphStream setup completed");
     }
 
     private void setupLayout() {
@@ -55,7 +63,7 @@ public class MainFrame extends JFrame {
 
     private void setupWindowProperties() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setPreferredSize(new Dimension(1000, 800));
+        setPreferredSize(new Dimension(600, 600));
         pack();
         setLocationRelativeTo(null);
     }

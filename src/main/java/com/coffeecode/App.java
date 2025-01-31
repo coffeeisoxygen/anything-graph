@@ -10,17 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class App {
 
-    private static void setupGraphStream() {
-        System.setProperty("org.graphstream.ui", "swing");
-        System.setProperty("org.graphstream.ui.renderer",
-                "org.graphstream.ui.j2dviewer.J2DGraphRenderer");
-    }
-
-    private static void setupLookAndFeel() throws Exception {
-        UIManager.setLookAndFeel(
-                UIManager.getSystemLookAndFeelClassName());
-    }
-
     public static void main(String[] args) {
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             log.error("Uncaught exception in thread {}", thread.getName(), throwable);
@@ -30,18 +19,17 @@ public class App {
         log.info("Starting Graph Algorithm Visualizer...");
 
         try {
-            setupGraphStream();
-            setupLookAndFeel();
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
             SwingUtilities.invokeLater(() -> {
                 try {
                     MainFrame mainFrame = new MainFrame();
                     mainFrame.setVisible(true);
 
-                    // Add shutdown hook
                     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                         log.info("Shutting down application...");
                         mainFrame.dispose();
+                        System.exit(0);
                     }));
 
                     log.info("Application started successfully");
