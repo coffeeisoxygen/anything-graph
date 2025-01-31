@@ -32,7 +32,7 @@ public class MainFrame extends JFrame {
         service = new MainFrameService();
         toolbar = new ToolbarPanel(service);  // Pass service
         toolbarControlManager = new ToolbarControlManager(toolbar, service);
-        graphPanel = new GraphPanel(); // Fix: Initialize GraphPanel without passing Graph
+        graphPanel = service.getGraphPanel(); // Get panel with initialized graph
 
         setupLayout();
         setupWindowProperties();

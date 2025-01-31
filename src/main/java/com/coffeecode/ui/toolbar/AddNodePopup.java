@@ -3,12 +3,16 @@ package com.coffeecode.ui.toolbar;
 import javax.swing.*;
 
 import com.coffeecode.ui.service.MainFrameService;
+import com.coffeecode.ui.validation.LocationValidator;
+
+import lombok.extern.slf4j.Slf4j;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
 import java.awt.event.ActionListener;
 
+@Slf4j
 public class AddNodePopup extends JDialog {
 
     private final JTextField nameField;
@@ -82,34 +86,50 @@ public class AddNodePopup extends JDialog {
         closeButton.addActionListener(e -> dispose());
     }
 
-    private void handleGetFromMap() {
-        JOptionPane.showMessageDialog(this, "Fetching coordinates from map...");
-    }
-
     private void handleAddNode() {
+        String name = nameField.getText().trim();
+        if (name.isEmpty()) {
+            showError("Node name cannot be empty");
+            return;
+        }
+
         try {
-            String name = nameField.getText();
             double longitude = Double.parseDouble(longitudeField.getText());
             double latitude = Double.parseDouble(latitudeField.getText());
 
-            if (name.isEmpty()) {
-                showError("Name cannot be empty");
-                return;
-            }
+            // Validate coordinates before adding
+            LocationValidator.validateCoordinates(latitude, longitude);
 
             boolean added = service.addNode(name, latitude, longitude);
             if (added) {
+                log.debug("Node added successfully: {}", name);
                 dispose();
             } else {
-                showError("Node already exists");
+                showError("Node with this name already exists");
             }
         } catch (NumberFormatException e) {
-            showError("Invalid coordinates");
+            showError("Invalid coordinate format. Please enter valid numbers");
+            log.debug("Invalid coordinate format entered");
+        } catch (IllegalArgumentException e) {
+            showError(e.getMessage());
+            log.debug("Invalid coordinates: {}", e.getMessage());
         }
     }
 
     private void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this,
+                message,
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void handleGetFromMap() {
+        // Will be implemented when map feature is added
+        log.debug("Get from map requested - Not implemented yet");
+        JOptionPane.showMessageDialog(this,
+                "Map feature coming soon!",
+                "Not Implemented",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
     public static void showPopup(JFrame parent, MainFrameService service) {

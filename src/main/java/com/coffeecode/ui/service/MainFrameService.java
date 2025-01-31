@@ -1,10 +1,12 @@
 package com.coffeecode.ui.service;
 
+import com.coffeecode.event.core.GraphEvent;
 import com.coffeecode.model.LocationGraph;
 import com.coffeecode.model.LocationNode;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.SingleGraph;
 import com.coffeecode.service.GraphConverter;
+import com.coffeecode.ui.panelgraph.GraphPanel;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -15,11 +17,23 @@ public class MainFrameService {
 
     private final Graph visualGraph;
     private final LocationGraph locationGraph;
+    private final GraphPanel graphPanel;
 
     public MainFrameService() {
-        this.visualGraph = new SingleGraph("GraphStream");
+        this.visualGraph = new SingleGraph("visualization");
         this.locationGraph = new LocationGraph();
+        this.graphPanel = new GraphPanel(visualGraph);
         setupGraphStream();
+
+        // Subscribe to graph events
+        locationGraph.subscribe(GraphEvent.NodeAdded.class,
+                event -> updateVisualization());
+        locationGraph.subscribe(GraphEvent.EdgeAdded.class,
+                event -> updateVisualization());
+        locationGraph.subscribe(GraphEvent.NodeRemoved.class,
+                event -> updateVisualization());
+        locationGraph.subscribe(GraphEvent.EdgeRemoved.class,
+                event -> updateVisualization());
     }
 
     private void setupGraphStream() {
@@ -45,16 +59,18 @@ public class MainFrameService {
         """);
     }
 
+    private void updateVisualization() {
+        GraphConverter.updateGraphVisualization(locationGraph, visualGraph);
+        graphPanel.refresh();
+        log.debug("Graph visualization updated");
+    }
+
     public boolean addNode(String id, double latitude, double longitude) {
         try {
             LocationNode node = new LocationNode(id, latitude, longitude);
-            boolean added = locationGraph.addNode(node);
-            if (added) {
-                GraphConverter.updateGraphVisualization(locationGraph, visualGraph);
-            }
-            return added;
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid node parameters: {}", e.getMessage());
+            return locationGraph.addNode(node);
+        } catch (Exception e) {
+            log.error("Failed to add node: {}", e.getMessage());
             return false;
         }
     }
