@@ -48,6 +48,10 @@ public class EventManager {
         }
 
         Set<Consumer<?>> handlers = subscribers.get(event.getClass());
+        if (handlers == null) {
+            log.warn("No handlers found for event type: {}", event.getClass());
+            return;
+        }
         if (handlers != null && !handlers.isEmpty()) {
             CompletableFuture.runAsync(() -> {
                 handlers.forEach(handler -> {

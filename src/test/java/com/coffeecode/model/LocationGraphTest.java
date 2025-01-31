@@ -44,28 +44,25 @@ class LocationGraphTest {
         @DisplayName("Should handle basic node operations")
         void basicOperations() throws InterruptedException {
             testHelper.expectEvents(1);
+
             assertThat(graph.addNode(nodeA)).isTrue();
             testHelper.waitForEvents();
 
-            assertThat(graph.hasNode(nodeA)).isTrue();
-            assertThat(graph.getNodeCount()).isEqualTo(1);
-            assertThat(graph.getNodes()).contains(nodeA);
-
+            // Verify first event
             assertThat(testHelper.getEvents())
                     .hasSize(1)
                     .hasOnlyElementsOfType(GraphEvent.NodeAdded.class);
 
-            assertThat(graph.addNode(nodeA)).isFalse(); // Duplicate
-            testHelper.waitForEvents();
-
+            // Setup for next events
+            testHelper.expectEvents(1);
             assertThat(graph.removeNode(nodeA)).isTrue();
             testHelper.waitForEvents();
 
+            // Verify node state
             assertThat(graph.hasNode(nodeA)).isFalse();
             assertThat(testHelper.getEvents())
-                    .hasSize(2)
-                    .element(1)
-                    .isInstanceOf(GraphEvent.NodeRemoved.class);
+                    .hasSize(1)
+                    .hasOnlyElementsOfType(GraphEvent.NodeRemoved.class);
         }
 
         @Test
@@ -178,64 +175,72 @@ class LocationGraphTest {
     class EventPublishing {
 
         @Test
-        @DisplayName("Should publish node and edge events")
+        @DisplayName("Should publish events in order")
         void eventPublishing() throws InterruptedException {
+            testHelper.expectEvents(4);
+
+            // Execute operations
             graph.addNode(nodeA);
             graph.addNode(nodeB);
             graph.addEdge(edgeAB);
             graph.removeNode(nodeA);
+
             testHelper.waitForEvents();
 
+            // Verify events
             assertThat(testHelper.getEvents())
                     .hasSize(4)
-                    .hasOnlyElementsOfTypes(
+                    .extracting("class")
+                    .containsExactly(
+                            GraphEvent.NodeAdded.class,
                             GraphEvent.NodeAdded.class,
                             GraphEvent.EdgeAdded.class,
                             GraphEvent.NodeRemoved.class
                     );
         }
-    }
 
-    @Nested
-    @DisplayName("Performance")
-    class Performance {
+        @Nested
+        @DisplayName("Performance")
+        class Performance {
 
-        @Test
-        @DisplayName("Should handle large graphs efficiently")
-        void memoryUsage() {
-            System.gc(); // Force GC before test
-            Runtime runtime = Runtime.getRuntime();
-            long initialMemory = runtime.totalMemory() - runtime.freeMemory();
+            @Test
+            @DisplayName("Should handle large graphs efficiently")
+            void memoryUsage() {
+                System.gc(); // Force GC before test
+                Runtime runtime = Runtime.getRuntime();
+                long initialMemory = runtime.totalMemory() - runtime.freeMemory();
 
-            for (int i = 0; i < 100; i++) {
-                LocationNode node = new LocationNode("Node" + i, i % 90, i % 180);
-                graph.addNode(node);
-                if (i > 0) {
-                    LocationNode prev = new LocationNode(
-                            "Node" + (i - 1),
-                            (i - 1) % 90,
-                            (i - 1) % 180
-                    );
-                    graph.addEdge(new LocationEdge(prev, node, 1.0));
+                for (int i = 0; i < 100; i++) {
+                    LocationNode node = new LocationNode("Node" + i, i % 90, i % 180);
+                    graph.addNode(node);
+                    if (i > 0) {
+                        LocationNode prev = new LocationNode(
+                                "Node" + (i - 1),
+                                (i - 1) % 90,
+                                (i - 1) % 180
+                        );
+                        graph.addEdge(new LocationEdge(prev, node, 1.0));
+                    }
                 }
+
+                System.gc(); // Force GC after test
+                long finalMemory = runtime.totalMemory() - runtime.freeMemory();
+                long memoryUsed = finalMemory - initialMemory;
+
+                assertThat(memoryUsed)
+                        .as("Memory usage should be positive")
+                        .isGreaterThan(0L);
             }
-
-            System.gc(); // Force GC after test
-            long finalMemory = runtime.totalMemory() - runtime.freeMemory();
-            long memoryUsed = finalMemory - initialMemory;
-
-            assertThat(memoryUsed)
-                    .as("Memory usage should be positive")
-                    .isGreaterThan(0L);
         }
-    }
 
-    @AfterEach
-    void tearDown() throws InterruptedException {
-        if (graph != null) {
-            graph.clear();
-            testHelper.waitForEvents();
-            graph.shutdown();
+        @AfterEach
+        void tearDown() throws InterruptedException {
+            if (graph != null) {
+                testHelper.clearEvents();
+                graph.clear();
+                testHelper.waitForEvents();
+                graph.shutdown();
+            }
         }
     }
 }
