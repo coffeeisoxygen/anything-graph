@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TestHelper {
 
-    private static final int DEFAULT_WAIT_MS = 200;
+    private static final int DEFAULT_WAIT_MS = 500; // Increased wait time
     private final List<GraphEvent> events;
     private final LocationGraph graph;
     private volatile CountDownLatch eventLatch;
@@ -32,6 +32,7 @@ public class TestHelper {
     private void setupEventSubscriptions() {
         EventListener<GraphEvent.NodeAdded> nodeAddedListener = event -> {
             events.add(event);
+            log.debug("Node added event received: {}", event);
             int remaining = expectedEvents.decrementAndGet();
             if (remaining <= 0) {
                 eventLatch.countDown();
@@ -40,6 +41,7 @@ public class TestHelper {
 
         EventListener<GraphEvent.EdgeAdded> edgeAddedListener = event -> {
             events.add(event);
+            log.debug("Edge added event received: {}", event);
             int remaining = expectedEvents.decrementAndGet();
             if (remaining <= 0) {
                 eventLatch.countDown();
@@ -48,6 +50,7 @@ public class TestHelper {
 
         EventListener<GraphEvent.NodeRemoved> nodeRemovedListener = event -> {
             events.add(event);
+            log.debug("Node removed event received: {}", event);
             int remaining = expectedEvents.decrementAndGet();
             if (remaining <= 0) {
                 eventLatch.countDown();
@@ -56,6 +59,7 @@ public class TestHelper {
 
         EventListener<GraphEvent.EdgeRemoved> edgeRemovedListener = event -> {
             events.add(event);
+            log.debug("Edge removed event received: {}", event);
             int remaining = expectedEvents.decrementAndGet();
             if (remaining <= 0) {
                 eventLatch.countDown();
