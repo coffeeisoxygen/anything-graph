@@ -136,14 +136,7 @@ public class AddBatchNodePopup extends JDialog {
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         statusLabel.setText("Fetching locations...");
 
-        // Collect all non-empty IDs first
-        List<Integer> rowsToProcess = new ArrayList<>();
-        for (int i = 0; i < tableModel.getRowCount(); i++) {
-            String locationName = (String) tableModel.getValueAt(i, 0);
-            if (locationName != null && !locationName.trim().isEmpty()) {
-                rowsToProcess.add(i);
-            }
-        }
+        List<Integer> rowsToProcess = collectNonEmptyRows();
 
         if (rowsToProcess.isEmpty()) {
             setCursor(Cursor.getDefaultCursor());
@@ -151,6 +144,21 @@ public class AddBatchNodePopup extends JDialog {
             return;
         }
 
+        executeLocationSearch();
+    }
+
+    private List<Integer> collectNonEmptyRows() {
+        List<Integer> rowsToProcess = new ArrayList<>();
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            String locationName = (String) tableModel.getValueAt(i, 0);
+            if (locationName != null && !locationName.trim().isEmpty()) {
+                rowsToProcess.add(i);
+            }
+        }
+        return rowsToProcess;
+    }
+
+    private void executeLocationSearch() {
         new SwingWorker<Void, LocationSearchResult>() {
             @Override
             protected Void doInBackground() {
