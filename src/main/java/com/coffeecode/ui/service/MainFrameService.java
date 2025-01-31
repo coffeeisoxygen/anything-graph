@@ -5,6 +5,7 @@ import com.coffeecode.event.core.GraphEvent;
 import com.coffeecode.model.LocationEdge;
 import com.coffeecode.model.LocationGraph;
 import com.coffeecode.model.LocationNode;
+import com.coffeecode.model.weight.EdgeType;
 import com.coffeecode.model.weight.EdgeWeightStrategy;
 import com.coffeecode.model.weight.WeightStrategies;
 import com.coffeecode.ui.config.GraphStreamConfig;
@@ -12,10 +13,10 @@ import com.coffeecode.ui.panelgraph.GraphConverter;
 import com.coffeecode.ui.panelgraph.GraphPanel;
 
 import java.util.List;
+import java.util.Set;
 
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.SingleGraph;
-import org.graphstream.stream.file.FileSourceGEXF.GEXFConstants.EdgeType;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -146,6 +147,7 @@ public class MainFrameService {
                     WeightStrategies.EUCLIDEAN_DISTANCE;
                 case UNIT ->
                     WeightStrategies.UNIT_WEIGHT;
+                default -> throw new IllegalArgumentException("Unknown EdgeType: " + type);
             };
 
             double weight = strategy.calculateWeight(source, target);
@@ -155,7 +157,7 @@ public class MainFrameService {
                     ? GraphResult.success(true)
                     : GraphResult.failure("Edge already exists");
 
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             log.error("Failed to add edge: {}", e.getMessage());
             return GraphResult.failure(e.getMessage());
         }
@@ -207,6 +209,16 @@ public class MainFrameService {
 
     public void stopAlgorithm() {
         //TODO
+    }
+
+    public Set<String> getAllNodeIds() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getAllNodeIds'");
+    }
+
+    public GraphResult<Integer> autoConnectNodes() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'autoConnectNodes'");
     }
 
 }

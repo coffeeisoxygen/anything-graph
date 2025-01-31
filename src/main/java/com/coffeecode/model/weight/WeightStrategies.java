@@ -19,4 +19,16 @@ public final class WeightStrategies {
     private WeightStrategies() {
         throw new AssertionError("No instances");
     }
+
+    public static EdgeWeightStrategy getStrategy(EdgeType type) {
+        return switch (type) {
+            case HAVERSINE ->
+                HAVERSINE_DISTANCE;
+            case EUCLIDEAN ->
+                EUCLIDEAN_DISTANCE;
+            case UNIT ->
+                UNIT_WEIGHT;
+        };
+    }
+
 }
