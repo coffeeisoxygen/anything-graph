@@ -203,4 +203,54 @@ public class LocationGraph {
     public void subscribeToEvents(GraphEventListener listener) {
         eventPublisher.subscribe(listener);
     }
+
+    // development Puproses only 
+    // [ ] todo : Make A Good Coffee And Relaxed
+    // - [ ] todo : Transaction , 
+    // ? [ ] MARK Thread , Locks , Concurrency , Parallelism , Asynchronous , Synchronous , Blocking , Non-Blocking , Deadlocks , Starvation
+    // ? [ ] MARK: - development Puproses only
+    // ! [ ] MARK: - development Puproses only
+    public void unsubscribeToEvents(GraphEventListener listener) {
+        eventPublisher.unsubscribe(listener);
+    }
+
+    public void shutdownEventPublisher() {
+        eventPublisher.shutdown();
+    }
+
+    // print adjacency list
+    public void printAdjacencyList() {
+        log.info("Adjacency List:");
+        adjacencyList.forEach((node, edges) -> {
+            log.info("Node: {}", node);
+            edges.forEach(edge -> log.info("  -> {}", edge));
+        });
+        System.out.println("Adjacency List:");
+        adjacencyList.forEach((node, edges) -> {
+            System.out.println("Node: " + node);
+            edges.forEach(edge -> System.out.println("  -> " + edge));
+        });
+    }
+
+    // prints as adjacency matrix
+    public void printAdjacencyMatrix() {
+        StringBuilder matrix = new StringBuilder("Adjacency Matrix:\n");
+        adjacencyList.forEach((node, edges) -> {
+            matrix.append("Node: ").append(node).append("\n");
+            adjacencyList.forEach((otherNode, otherEdges) -> {
+                boolean connected = otherEdges.stream()
+                        .anyMatch(edge -> edge.getDestination().equals(node));
+                matrix.append("  -> ").append(otherNode).append(": ").append(connected).append("\n");
+            });
+        });
+        log.info(matrix.toString());
+        System.out.println(matrix.toString());
+    }
+
+    @Override
+    public String toString() {
+        return "LocationGraph{" + "nodes=" + getNodeCount() + ", edges=" + getEdgeCount() + '}';
+
+    }
+
 }
