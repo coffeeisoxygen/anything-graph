@@ -165,28 +165,29 @@ public class ToolbarPanel extends JToolBar {
         );
     }
 
-                void handleRemoveEdge() {
-                veEdgePopup.showDialog(
+    private void handleRemoveEdge() {
+        RemoveEdgePopup.showDialog(
             (JFrame) SwingUtilities.getWindowAncestor(this),
             service
         );
+    }
 
 
-                void 
-                result = JOptionPane.showConfirmDialog(
-                this,
-                "Are you sure you want to 
-                "Clear Edges",
+    private void handleClearAllEdges() {
+        int result = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to clear all edges?",
+            "Clear Edges",
             JOptionPane.YES_NO_OPTION,
-        JOptionPane.WARNING_MESSAGE
+            JOptionPane.WARNING_MESSAGE
         );
     
         if (result == JOptionPane.YES_OPTION) {
-            GraphResult<Boolean> clearResult =
-                        arRes
-                        ionPane.showMessageDialog(
-                        this,
-                        "Failed to clear edges: " + clearResult.getMessage(),
+            GraphResult<Boolean> clearResult = service.clearEdges();
+            if (!clearResult.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Failed to clear edges: " + clearResult.getMessage(),
                     "Error",
                     JOptionPane.ERROR_MESSAGE
                 );
@@ -194,21 +195,21 @@ public class ToolbarPanel extends JToolBar {
         }
     }
 
-                void 
-                result = JOptionPane.showConfirmDialog(
-                this,
-                "Are you sure you want to 
-                "Clear Graph",
+    private void handleClearAll() {
+        int result = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to clear all nodes and edges?",
+            "Clear Graph",
             JOptionPane.YES_NO_OPTION,
-        JOptionPane.WARNING_MESSAGE
+            JOptionPane.WARNING_MESSAGE
         );
     
         if (result == JOptionPane.YES_OPTION) {
-            GraphResult<Boolean> clearResult =
-                        arRes
-                        ionPane.showMessageDialog(
-                        this,
-                        "Failed to clear graph: " + clearResult.getMessage(),
+            GraphResult<Boolean> clearResult = service.clearGraph();
+            if (!clearResult.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Failed to clear graph: " + clearResult.getMessage(),
                     "Error",
                     JOptionPane.ERROR_MESSAGE
                 );
