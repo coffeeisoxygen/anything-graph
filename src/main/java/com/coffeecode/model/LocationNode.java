@@ -13,31 +13,9 @@ public class LocationNode {
     private final double longitude;
 
     public LocationNode(String id, double latitude, double longitude) {
-        this.id = validateId(id);
-        this.latitude = validateLatitude(latitude);
-        this.longitude = validateLongitude(longitude);
-    }
-
-    // Validation methods
-    private String validateId(String id) {
-        if (id == null || id.trim().isEmpty()) {
-            throw new IllegalArgumentException("ID cannot be null or empty");
-        }
-        return id;
-    }
-
-    private double validateLatitude(double latitude) {
-        if (latitude < -90 || latitude > 90) {
-            throw new IllegalArgumentException("Latitude must be between -90 and 90");
-        }
-        return latitude;
-    }
-
-    private double validateLongitude(double longitude) {
-        if (longitude < -180 || longitude > 180) {
-            throw new IllegalArgumentException("Longitude must be between -180 and 180");
-        }
-        return longitude;
+        this.id = id;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     // Getters

@@ -10,6 +10,7 @@ import com.coffeecode.event.core.EventListener;
 import com.coffeecode.event.core.EventManager;
 import com.coffeecode.event.core.GraphEvent;
 import com.coffeecode.event.service.ServiceLocator;
+import com.coffeecode.model.validation.LocationValidator;
 import com.coffeecode.model.weight.EdgeWeightStrategy;
 import com.coffeecode.model.weight.WeightStrategies;
 
@@ -46,15 +47,19 @@ public class LocationGraph {
      * @return true if node was added, false if already exists
      */
     public boolean addNode(@NotNull @NonNull LocationNode node) {
-        boolean added = adjacencyList.putIfAbsent(node,
-                Collections.newSetFromMap(new ConcurrentHashMap<>())) == null;
-        if (added) {
-            eventManager.publish(new GraphEvent.NodeAdded(node));
-            log.info("Node added successfully: {}", node);
-        } else {
-            log.warn("Failed to add node (already exists): {}", node);
+        try {
+            LocationValidator.validateNewNode(node, getNodes());
+            boolean added = adjacencyList.putIfAbsent(node,
+                    Collections.newSetFromMap(new ConcurrentHashMap<>())) == null;
+            if (added) {
+                eventManager.publish(new GraphEvent.NodeAdded(node));
+                log.info("Node added successfully: {}", node);
+            }
+            return added;
+        } catch (IllegalArgumentException e) {
+            log.warn("Failed to add node: {}", e.getMessage());
+            return false;
         }
-        return added;
     }
 
     /**
