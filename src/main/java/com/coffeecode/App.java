@@ -2,6 +2,7 @@ package com.coffeecode;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import com.coffeecode.ui.MainFrame;
 
@@ -40,7 +41,7 @@ public class App {
                 }
             });
 
-        } catch (Exception e) {
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException e) {
             log.error("Failed to start application", e);
             System.exit(1);
         }
